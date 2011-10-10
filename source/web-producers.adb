@@ -57,7 +57,7 @@ package body Web.Producers is
 		raise Data_Error with """" & Part & """ was not found.";
 	end Find_Part;
 	
-	-- bodies
+	-- implementation
 	
 	function Is_Empty (Object : Template) return Boolean is
 	begin

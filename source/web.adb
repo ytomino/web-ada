@@ -245,7 +245,7 @@ package body Web is
 		end loop;		
 	end Write_Query_In_HTML_Internal;
 	
-	-- bodies
+	-- implementation
 	
 	function Checkbox_Value (S : String) return Boolean is
 	begin
