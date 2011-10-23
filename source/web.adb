@@ -5,6 +5,18 @@ package body Web is
 	use type Ada.Calendar.Day_Duration;
 	use type String_Maps.Cursor;
 	
+	Month_T : constant String := "JanFebMarAprMayJunJulAugSepOctNovDec";
+	Day_T : constant String := "MonTueWedThuFriSatSun";
+	
+	function Environment_Variables_Value (Name : String) return String is
+	begin
+		if Ada.Environment_Variables.Exists (Name) then
+			return Ada.Environment_Variables.Value (Name);
+		else
+			return "";
+		end if;
+	end Environment_Variables_Value;
+	
 	procedure Header_Cookie_Internal (
 		Stream : not null access Ada.Streams.Root_Stream_Type'Class;
 		Cookie : in Web.Cookie;
@@ -12,35 +24,14 @@ package body Web is
 	begin
 		if not Cookie.Is_Empty then
 			declare
-				Year : Ada.Calendar.Year_Number;
-				Month : Ada.Calendar.Month_Number;
-				Day : Ada.Calendar.Day_Number;
-				Week_Day : Ada.Calendar.Formatting.Day_Name;
-				Seconds, Sub_Seconds : Ada.Calendar.Day_Duration;
 				Position : String_Maps.Cursor := String_Maps.First (Cookie);
-				Hou : Ada.Calendar.Formatting.Hour_Number;
-				Min : Ada.Calendar.Formatting.Minute_Number;
-				Sec : Ada.Calendar.Formatting.Second_Number;
 			begin
-				if Expires /= null then
-					Ada.Calendar.Split (Expires.all, Year, Month, Day, Seconds);
-					Ada.Calendar.Formatting.Split (Seconds, Hou, Min, Sec, Sub_Seconds);
-					Week_Day := Ada.Calendar.Formatting.Day_Of_Week (Expires.all);
-				end if;
 				while String_Maps.Has_Element (Position) loop
-					String'Write (Stream, "set-cookie: " & 
-						String_Maps.Key (Position) & "=" & 
-						Encode_URI (String_Maps.Element (Position)) & ";");
+					String'Write (Stream, "set-cookie: "
+						& String_Maps.Key (Position) & "="
+						& Encode_URI (String_Maps.Element (Position)) & ";");
 					if Expires /= null then
-						String'Write (
-							Stream,
-							" expires=" & Day_Of_Week_Image (Week_Day) & ", " &
-							Column_Image (Day, 2) & "-" & 
-							Month_Image (Month) & "-" &
-							Column_Image (Year, 4) & " " &
-							Column_Image (Hou, 2) & ":" &
-							Column_Image (Min, 2) & ":" &
-							Column_Image (Sec, 2) & " GMT;");
+						String'Write (Stream, " expires=" & Image (Expires.all) & ";");
 					end if;
 					String'Write (Stream, Line_Break);
 					Position := String_Maps.Next (Position);
@@ -245,30 +236,346 @@ package body Web is
 		end loop;		
 	end Write_Query_In_HTML_Internal;
 	
-	-- implementation
+	-- implementation of string map
 	
-	function Checkbox_Value (S : String) return Boolean is
-	begin
-		return Ada.Strings.Equal_Case_Insensitive (S, "on");
-	end Checkbox_Value;
-	
-	function Column_Image (Value, Column : Natural) return String is
-		Result : String := (1 .. Column => '0') & Natural'Image (Value);
-	begin
-		if Result (Column + 1) = ' ' then
-			Result (Column + 1) := '0';
-		end if;
-		return Result (Result'Last - Column + 1 .. Result'Last);
-	end Column_Image;
-	
-	function Day_Of_Week_Image (Day_Of_Week : Ada.Calendar.Formatting.Day_Name)
+	function Element (Map : String_Maps.Map; Key : String; Default : String := "")
 		return String
 	is
-		T : constant String := "MonTueWedThuFriSatSun";
-		I : constant Natural := Ada.Calendar.Formatting.Day_Name'Pos (Day_Of_Week);
+		Position : String_Maps.Cursor renames String_Maps.Find (Map, Key);
 	begin
-		return T (I * 3 + 1 .. I * 3 + 3);
-	end Day_Of_Week_Image;
+		if Position = String_Maps.No_Element then
+			return Default;
+		else
+			return String_Maps.Element (Position);
+		end if;
+	end Element;
+	
+	-- implementation of time
+	
+	function Image (Time : Ada.Calendar.Time) return Time_Name is
+		Year : Ada.Calendar.Year_Number;
+		Month : Ada.Calendar.Month_Number;
+		Day : Ada.Calendar.Day_Number;
+		Hou : Ada.Calendar.Formatting.Hour_Number;
+		Min : Ada.Calendar.Formatting.Minute_Number;
+		Sec : Ada.Calendar.Formatting.Second_Number;
+		Sub_Seconds : Ada.Calendar.Day_Duration;
+	begin
+		Ada.Calendar.Formatting.Split (
+			Time,
+			Year, Month, Day,
+			Hou, Min, Sec, Sub_Seconds);
+		return Day_Image (Ada.Calendar.Formatting.Day_Of_Week (Time)) & ", "
+			& Z2_Image (Day) & " "
+			& Month_Image (Month) & " "
+			& Year_Image (Year) & " "
+			& Z2_Image (Hou) & ":"
+			& Z2_Image (Min) & ":"
+			& Z2_Image (Sec) & " GMT";
+	end Image;
+	
+	function Value (Image : String) return Ada.Calendar.Time is
+	begin
+		if Image'Length /= Time_Name'Length then
+			raise Constraint_Error;
+		else
+			declare
+				F : constant Positive := Image'First;
+				Day_Of_Week : Ada.Calendar.Formatting.Day_Name;
+				pragma Unreferenced (Day_Of_Week);
+				Year : Ada.Calendar.Year_Number;
+				Month : Ada.Calendar.Month_Number;
+				Day : Ada.Calendar.Day_Number;
+				Hou : Ada.Calendar.Formatting.Hour_Number;
+				Min : Ada.Calendar.Formatting.Minute_Number;
+				Sec : Ada.Calendar.Formatting.Second_Number;
+			begin
+				Day_Of_Week := Day_Value (Image (F .. F + 2));
+				if Image (F + 3 .. F + 4) /= ", " then
+					raise Constraint_Error;
+				end if;
+				Day := Natural'Value (Image (F + 5 .. F + 6));
+				if Image (F + 7) /= ' ' then
+					raise Constraint_Error;
+				end if;
+				Month := Month_Value (Image (F + 8 .. F + 10));
+				if Image (F + 11) /= ' ' then
+					raise Constraint_Error;
+				end if;
+				Year := Natural'Value (Image (F + 12 .. F + 15));
+				if Image (F + 16) /= ' ' then
+					raise Constraint_Error;
+				end if;
+				Hou := Natural'Value (Image (F + 17 .. F + 18));
+				if Image (F + 19) /= ':' then
+					raise Constraint_Error;
+				end if;
+				Min := Natural'Value (Image (F + 20 .. F + 21));
+				if Image (F + 22) /= ':' then
+					raise Constraint_Error;
+				end if;
+				Sec := Natural'Value (Image (F + 23 .. F + 24));
+				if Image (F + 25 .. F + 28) /= " GMT" then
+					raise Constraint_Error;
+				end if;
+				return Ada.Calendar.Formatting.Time_Of (
+					Year, Month, Day,
+					Hou, Min, Sec);
+			end;
+		end if;
+	end Value;
+	
+	function Year_Image (Year : Natural) return Year_Name is
+		S : constant String := Natural'Image (Year);
+	begin
+		pragma Assert (S (S'First) = ' ');
+		return Result : Year_Name := (others => '0') do
+			Result (Year_Name'Last + 1 - (S'Last - S'First) .. Year_Name'Last) :=
+				S (S'First + 1 .. S'Last);
+		end return;
+	end Year_Image;
+	
+	function Month_Image (Month : Ada.Calendar.Month_Number) return Month_Name is
+	begin
+		return Month_T (Month * 3 - 2 .. Month * 3);
+	end Month_Image;
+	
+	function Month_Value (S : String) return Ada.Calendar.Month_Number is
+	begin
+		for Month in Ada.Calendar.Month_Number loop
+			if S = Month_T (Month * 3 - 2 .. Month * 3) then
+				return Month;
+			end if;
+		end loop;
+		raise Constraint_Error;
+	end Month_Value;
+	
+	function Day_Image (Day : Ada.Calendar.Formatting.Day_Name) return Day_Name is
+		I : constant Natural := Ada.Calendar.Formatting.Day_Name'Pos (Day);
+	begin
+		return Day_T (I * 3 + 1 .. I * 3 + 3);
+	end Day_Image;
+	
+	function Day_Value (S : String) return Ada.Calendar.Formatting.Day_Name is
+	begin
+		for Day in Ada.Calendar.Formatting.Day_Name loop
+			declare
+				I : constant Natural := Ada.Calendar.Formatting.Day_Name'Pos (Day);
+			begin
+				if S = Day_T (I * 3 + 1 .. I * 3 + 3) then
+					return Day;
+				end if;
+			end;
+		end loop;
+		raise Constraint_Error;
+	end Day_Value;
+	
+	function Z2_Image (Value : Natural) return String_2 is
+		S : String := Natural'Image (Value);
+	begin
+		if S'Length > 2 then
+			return S (S'Last - 1 .. S'Last);
+		else
+			pragma Assert (S'Length = 2);
+			S (S'First) := '0';
+			return S;
+		end if;
+	end Z2_Image;
+	
+	-- implementation of input
+	
+	function Request_URI return String is
+		Request_URI_Value : String
+			renames Environment_Variables_Value (Request_URI_Variable);
+		Query_String_Value : String
+			renames Environment_Variables_Value (Query_String_Variable);
+	begin
+		if Query_String_Value'Length = 0
+			or else Ada.Strings.Fixed.Index (Request_URI_Value, "?") > 0
+		then
+			return Request_URI_Value;
+		else
+			return Request_URI_Value & "?" & Query_String_Value;
+		end if;
+	end Request_URI;
+	
+	function Request_Path return String is
+		Request_URI_Value : String
+			renames Environment_Variables_Value (Request_URI_Variable);
+		Query_Index : constant Integer :=
+			Ada.Strings.Fixed.Index (Request_URI_Value, "?");
+	begin
+		if Query_Index > 0 then
+			return Request_URI_Value (Request_URI_Value'First .. Query_Index - 1);
+		else
+			return Request_URI_Value;
+		end if;
+	end Request_Path;
+	
+	function Remote_Addr return String is
+	begin
+		return Environment_Variables_Value (Remote_Addr_Variable);
+	end Remote_Addr;
+	
+	function Remote_Host return String is
+	begin
+		return Environment_Variables_Value (Remote_Host_Variable);
+	end Remote_Host;
+	
+	function Post return Boolean is
+	begin
+		return Ada.Strings.Equal_Case_Insensitive (
+			Environment_Variables_Value (Request_Method_Variable),
+			"post");
+	end Post;
+	
+	function Get_Post_Length return Natural is
+	begin
+		return Natural'Value (
+			Ada.Environment_Variables.Value (Content_Length_Variable));
+	exception
+		when Constraint_Error => return 0;
+	end Get_Post_Length;
+	
+	function Get_Post_Encoded_Kind return Post_Encoded_Kind is
+		Content_Type_Value : String
+			renames Ada.Environment_Variables.Value (Content_Type_Variable);
+	begin
+		if Prefixed_Case_Insensitive (
+			Content_Type_Value,
+			String (Content_URL_Encoded))
+		then
+			return URL_Encoded;
+		elsif Prefixed_Case_Insensitive (
+			Content_Type_Value,
+			String (Content_Multipart_Form_Data))
+		then
+			return Multipart_Form_Data;
+		else
+			return Miscellany;
+		end if;
+	end Get_Post_Encoded_Kind;
+	
+	function Encode_URI (S : String) return String is
+		Integer_To_Hex : constant array (0 .. 15) of Character := "0123456789abcdef";
+		Result : String (1 .. S'Length * 3);
+		Length : Natural := 0;
+	begin
+		for I in S'Range loop
+			declare
+				C : constant Character := S (I);
+			begin
+				if (C >= 'A' and C <= 'Z')
+					or else (C >= 'a' and C <= 'z')
+					or else (C >= '0' and C <= '9')
+				then
+					Length := Length + 1;
+					Result (Length) := C;
+				elsif C = ' ' then
+					Length := Length + 1;
+					Result (Length) := '+';
+				else
+					Length := Length + 1;
+					Result (Length) := '%';
+					Length := Length + 1;
+					Result (Length) := Integer_To_Hex (Character'Pos (C) / 16);
+					Length := Length + 1;
+					Result (Length) := Integer_To_Hex (Character'Pos (C) rem 16);
+				end if;
+			end;
+		end loop;
+		return Result (1 .. Length);
+	end Encode_URI;
+	
+	function Decode_URI (S : String) return String is
+		Hex_To_Integer : constant array (Character) of Natural := (
+			'0' => 0, '1' => 1, '2' => 2, '3' => 3, '4' => 4, 
+			'5' => 5, '6' => 6, '7' => 7, '8' => 8, '9' => 9,
+			'A' => 10, 'B' => 11, 'C' => 12, 'D' => 13, 'E' => 14, 'F' => 15,
+			'a' => 10, 'b' => 11, 'c' => 12, 'd' => 13, 'e' => 14, 'f' => 15,
+			others => 0);
+		Result : String (1 .. S'Length);
+		I : Positive;
+		Length : Natural := 0;
+	begin
+		I := S'First;
+		while I <= S'Last loop
+			declare
+				C : constant Character := S (I);
+			begin
+				if C = '+' then
+					Length := Length + 1;
+					Result (Length) := ' ';
+					I := I + 1;
+				elsif C /= '%' then
+					Length := Length + 1;
+					Result (Length) := C;
+					I := I + 1;
+				else
+					I := I + 1;
+					declare
+						L, H : Natural := 0;
+					begin
+						if I <= S'Last then
+							H := Hex_To_Integer (S (I));
+							I := I + 1;
+							if I <= S'Last then
+								L := Hex_To_Integer (S (I));
+								I := I + 1;
+							end if;
+						end if;
+						Length := Length + 1;
+						Result (Length) := Character'Val (L + H * 16);
+					end;
+				end if;
+			end;
+		end loop;
+		return Result (1 .. Length);
+	end Decode_URI;
+	
+	function Decode_Query_String (S : String) return Query_Strings is
+		Result : Query_Strings;
+		procedure Process (S : String) is
+			Sep_Pos : constant Natural := Ada.Strings.Fixed.Index (S, "=");
+		begin
+			if Sep_Pos >= S'First then
+				String_Maps.Include (
+					Result,
+					S (S'First .. Sep_Pos - 1),
+					Decode_URI (S (Sep_Pos + 1 .. S'Last)));
+			else
+				String_Maps.Include (Result, S, "");
+			end if;
+		end Process;
+		Pos : Natural := S'First;
+		Next : Natural;
+	begin
+		Parsing : loop
+			Next := Ada.Strings.Fixed.Index (S (Pos .. S'Last), "&");
+			if Next = 0 then
+				Next := S'Last + 1;
+			end if;
+			if Pos < Next then
+				Process (S (Pos .. Next - 1));
+			end if;
+			Pos := Next + 1;
+			if Pos > S'Last then
+				exit Parsing;
+			end if;
+		end loop Parsing;
+		return Result;
+	end Decode_Query_String;
+	
+	function Get_Query_Strings return Query_Strings is
+		URI : constant String := Request_URI;
+		Arg_Pos : constant Natural := Ada.Strings.Fixed.Index (URI, "?");
+	begin
+		if Arg_Pos = 0 then
+			return String_Maps.Empty_Map;
+		else
+			return Decode_Query_String (URI (Arg_Pos + 1 .. URI'Last));
+		end if;
+	end Get_Query_Strings;
 	
 	function Decode_Multipart_Form_Data (S : String) return Query_Strings is
 		
@@ -427,169 +734,6 @@ package body Web is
 		return Result;
 	end Decode_Multipart_Form_Data;
 	
-	function Decode_Query_String (S : String) return Query_Strings is
-		Result : Query_Strings;
-		procedure Process (S : String) is
-			Sep_Pos : constant Natural := Ada.Strings.Fixed.Index (S, "=");
-		begin
-			if Sep_Pos >= S'First then
-				String_Maps.Include (
-					Result,
-					S (S'First .. Sep_Pos - 1),
-					Decode_URI (S (Sep_Pos + 1 .. S'Last)));
-			else
-				String_Maps.Include (Result, S, "");
-			end if;
-		end Process;
-		Pos : Natural := S'First;
-		Next : Natural;
-	begin
-		Parsing : loop
-			Next := Ada.Strings.Fixed.Index (S (Pos .. S'Last), "&");
-			if Next = 0 then
-				Next := S'Last + 1;
-			end if;
-			if Pos < Next then
-				Process (S (Pos .. Next - 1));
-			end if;
-			Pos := Next + 1;
-			if Pos > S'Last then
-				exit Parsing;
-			end if;
-		end loop Parsing;
-		return Result;
-	end Decode_Query_String;
-	
-	function Decode_URI (S : String) return String is
-		Hex_To_Integer : constant array (Character) of Natural := (
-			'0' => 0, '1' => 1, '2' => 2, '3' => 3, '4' => 4, 
-			'5' => 5, '6' => 6, '7' => 7, '8' => 8, '9' => 9,
-			'A' => 10, 'B' => 11, 'C' => 12, 'D' => 13, 'E' => 14, 'F' => 15,
-			'a' => 10, 'b' => 11, 'c' => 12, 'd' => 13, 'e' => 14, 'f' => 15,
-			others => 0);
-		Result : String (1 .. S'Length);
-		I : Positive;
-		Length : Natural := 0;
-	begin
-		I := S'First;
-		while I <= S'Last loop
-			declare
-				C : constant Character := S (I);
-			begin
-				if C = '+' then
-					Length := Length + 1;
-					Result (Length) := ' ';
-					I := I + 1;
-				elsif C /= '%' then
-					Length := Length + 1;
-					Result (Length) := C;
-					I := I + 1;
-				else
-					I := I + 1;
-					declare
-						L, H : Natural := 0;
-					begin
-						if I <= S'Last then
-							H := Hex_To_Integer (S (I));
-							I := I + 1;
-							if I <= S'Last then
-								L := Hex_To_Integer (S (I));
-								I := I + 1;
-							end if;
-						end if;
-						Length := Length + 1;
-						Result (Length) := Character'Val (L + H * 16);
-					end;
-				end if;
-			end;
-		end loop;
-		return Result (1 .. Length);
-	end Decode_URI;
-	
-	function Element (Map : String_Maps.Map; Key : String; Default : String := "")
-		return String
-	is
-		Position : String_Maps.Cursor renames String_Maps.Find (Map, Key);
-	begin
-		if Position = String_Maps.No_Element then
-			return Default;
-		else
-			return String_Maps.Element (Position);
-		end if;
-	end Element;
-	
-	function Encode_URI (S : String) return String is
-		Integer_To_Hex : constant array (0 .. 15) of Character := "0123456789abcdef";
-		Result : String (1 .. S'Length * 3);
-		Length : Natural := 0;
-	begin
-		for I in S'Range loop
-			declare
-				C : constant Character := S (I);
-			begin
-				if (C >= 'A' and C <= 'Z')
-					or else (C >= 'a' and C <= 'z')
-					or else (C >= '0' and C <= '9')
-				then
-					Length := Length + 1;
-					Result (Length) := C;
-				elsif C = ' ' then
-					Length := Length + 1;
-					Result (Length) := '+';
-				else
-					Length := Length + 1;
-					Result (Length) := '%';
-					Length := Length + 1;
-					Result (Length) := Integer_To_Hex (Character'Pos (C) / 16);
-					Length := Length + 1;
-					Result (Length) := Integer_To_Hex (Character'Pos (C) rem 16);
-				end if;
-			end;
-		end loop;
-		return Result (1 .. Length);
-	end Encode_URI;
-	
-	function Environment_Variables_Value (Name : String) return String is
-	begin
-		if Ada.Environment_Variables.Exists (Name) then
-			return Ada.Environment_Variables.Value (Name);
-		else
-			return "";
-		end if;
-	end Environment_Variables_Value;
-	
-	procedure Generic_Write (Item : in String) is
-	begin
-		String'Write (Stream, Item);
-	end Generic_Write;
-	
-	procedure Generic_Write_In_Attribute (Item : in String) is
-		procedure Write_2 (Item : String) renames Write;
-	begin
-		Write_In_Attribute_Internal (Write_2'Access, Version, Item);
-	end Generic_Write_In_Attribute;
-	
-	procedure Generic_Write_In_HTML (
-		Item : in String;
-		Pre : in Boolean := False)
-	is
-		procedure Write_2 (Item : String) renames Write;
-	begin
-		Write_In_HTML_Internal (Write_2'Access, Version, Item, Pre);
-	end Generic_Write_In_HTML;
-	
-	procedure Generic_Write_Query_In_Attribute (Item : in Query_Strings) is
-		procedure Write_2 (Item : String) renames Write;
-	begin
-		Write_Query_In_Attribute_Internal (Write_2'Access, Version, Item);
-	end Generic_Write_Query_In_Attribute;
-	
-	procedure Generic_Write_Query_In_HTML (Item : in Query_Strings) is
-		procedure Write_2 (Item : String) renames Write;
-	begin
-		Write_Query_In_HTML_Internal (Write_2'Access, Version, Item);
-	end Generic_Write_Query_In_HTML;
-	
 	function Get (Stream : not null access Ada.Streams.Root_Stream_Type'Class)
 		return Query_Strings is
 	begin
@@ -653,43 +797,20 @@ package body Web is
 		return Result;
 	end Get_Cookie;
 	
-	function Get_Post_Encoded_Kind return Post_Encoded_Kind is
-		Content_Type_Value : String
-			renames Ada.Environment_Variables.Value (Content_Type_Variable);
+	function Checkbox_Value (S : String) return Boolean is
 	begin
-		if Prefixed_Case_Insensitive (
-			Content_Type_Value,
-			String (Content_URL_Encoded))
-		then
-			return URL_Encoded;
-		elsif Prefixed_Case_Insensitive (
-			Content_Type_Value,
-			String (Content_Multipart_Form_Data))
-		then
-			return Multipart_Form_Data;
-		else
-			return Miscellany;
-		end if;
-	end Get_Post_Encoded_Kind;
+		return Ada.Strings.Equal_Case_Insensitive (S, "on");
+	end Checkbox_Value;
 	
-	function Get_Post_Length return Natural is
+	function Prefixed_Case_Insensitive (S, Prefix : String) return Boolean is
 	begin
-		return Natural'Value (
-			Ada.Environment_Variables.Value (Content_Length_Variable));
-	exception
-		when Constraint_Error => return 0;
-	end Get_Post_Length;
+		return S'Length >= Prefix'Length
+			and then Ada.Strings.Equal_Case_Insensitive (
+				S (S'First .. S'First + Prefix'Length - 1),
+				Prefix);
+	end Prefixed_Case_Insensitive;
 	
-	function Get_Query_Strings return Query_Strings is
-		URI : constant String := Request_URI;
-		Arg_Pos : constant Natural := Ada.Strings.Fixed.Index (URI, "?");
-	begin
-		if Arg_Pos = 0 then
-			return String_Maps.Empty_Map;
-		else
-			return Decode_Query_String (URI (Arg_Pos + 1 .. URI'Last));
-		end if;
-	end Get_Query_Strings;
+	-- implementation of output
 	
 	procedure Header_303 (
 		Stream : not null access Ada.Streams.Root_Stream_Type'Class;
@@ -705,12 +826,6 @@ package body Web is
 	begin
 		String'Write (Stream, "status: 503 Service Unavailable" & Line_Break);
 	end Header_503;
-	
-	procedure Header_Break (
-		Stream : not null access Ada.Streams.Root_Stream_Type'Class) is
-	begin
-		String'Write (Stream, Line_Break);
-	end Header_Break;
 	
 	procedure Header_Content_Type (
 		Stream : not null access Ada.Streams.Root_Stream_Type'Class;
@@ -736,74 +851,25 @@ package body Web is
 		Header_Cookie_Internal (Stream, Cookie, null);
 	end Header_Cookie;
 	
-	function Month_Image (Month : Ada.Calendar.Month_Number) return String is
-		T : constant String := "JanFebMarAprMayJunJulAugSepOctNovDec";
+	procedure Header_Break (
+		Stream : not null access Ada.Streams.Root_Stream_Type'Class) is
 	begin
-		return T (Month * 3 - 2 .. Month * 3);
-	end Month_Image;
+		String'Write (Stream, Line_Break);
+	end Header_Break;
 	
-	function Post return Boolean is
+	procedure Generic_Write (Item : in String) is
 	begin
-		return Ada.Strings.Equal_Case_Insensitive (
-			Environment_Variables_Value (Request_Method_Variable),
-			"post");
-	end Post;
-
-	function Prefixed_Case_Insensitive (S, Prefix : String) return Boolean is
-	begin
-		return S'Length >= Prefix'Length
-			and then Ada.Strings.Equal_Case_Insensitive (
-				S (S'First .. S'First + Prefix'Length - 1),
-				Prefix);
-	end Prefixed_Case_Insensitive;
+		String'Write (Stream, Item);
+	end Generic_Write;
 	
-	function Remote_Addr return String is
-	begin
-		return Environment_Variables_Value (Remote_Addr_Variable);
-	end Remote_Addr;
-	
-	function Remote_Host return String is
-	begin
-		return Environment_Variables_Value (Remote_Host_Variable);
-	end Remote_Host;
-	
-	function Request_Path return String is
-		Request_URI_Value : String
-			renames Environment_Variables_Value (Request_URI_Variable);
-		Query_Index : constant Integer :=
-			Ada.Strings.Fixed.Index (Request_URI_Value, "?");
-	begin
-		if Query_Index > 0 then
-			return Request_URI_Value (Request_URI_Value'First .. Query_Index - 1);
-		else
-			return Request_URI_Value;
-		end if;
-	end Request_Path;
-	
-	function Request_URI return String is
-		Request_URI_Value : String
-			renames Environment_Variables_Value (Request_URI_Variable);
-		Query_String_Value : String
-			renames Environment_Variables_Value (Query_String_Variable);
-	begin
-		if Query_String_Value'Length = 0
-			or else Ada.Strings.Fixed.Index (Request_URI_Value, "?") > 0
-		then
-			return Request_URI_Value;
-		else
-			return Request_URI_Value & "?" & Query_String_Value;
-		end if;
-	end Request_URI;
-	
-	procedure Write_In_Attribute (
-		Stream : not null access Ada.Streams.Root_Stream_Type'Class;
-		Version : in HTML_Version;
-		Item : in String)
+	procedure Generic_Write_In_HTML (
+		Item : in String;
+		Pre : in Boolean := False)
 	is
-		procedure Write is new Generic_Write (Stream);
+		procedure Write_2 (Item : String) renames Write;
 	begin
-		Write_In_Attribute_Internal (Write'Access, Version, Item);
-	end Write_In_Attribute;
+		Write_In_HTML_Internal (Write_2'Access, Version, Item, Pre);
+	end Generic_Write_In_HTML;
 	
 	procedure Write_In_HTML (
 		Stream : not null access Ada.Streams.Root_Stream_Type'Class;
@@ -816,15 +882,27 @@ package body Web is
 		Write_In_HTML_Internal (Write'Access, Version, Item, Pre);
 	end Write_In_HTML;
 	
-	procedure Write_Query_In_Attribute (
+	procedure Generic_Write_In_Attribute (Item : in String) is
+		procedure Write_2 (Item : String) renames Write;
+	begin
+		Write_In_Attribute_Internal (Write_2'Access, Version, Item);
+	end Generic_Write_In_Attribute;
+	
+	procedure Write_In_Attribute (
 		Stream : not null access Ada.Streams.Root_Stream_Type'Class;
 		Version : in HTML_Version;
-		Item : in Query_Strings)
+		Item : in String)
 	is
 		procedure Write is new Generic_Write (Stream);
 	begin
-		Write_Query_In_Attribute_Internal (Write'Access, Version, Item);
-	end Write_Query_In_Attribute;
+		Write_In_Attribute_Internal (Write'Access, Version, Item);
+	end Write_In_Attribute;
+	
+	procedure Generic_Write_Query_In_HTML (Item : in Query_Strings) is
+		procedure Write_2 (Item : String) renames Write;
+	begin
+		Write_Query_In_HTML_Internal (Write_2'Access, Version, Item);
+	end Generic_Write_Query_In_HTML;
 	
 	procedure Write_Query_In_HTML (
 		Stream : not null access Ada.Streams.Root_Stream_Type'Class;
@@ -835,5 +913,21 @@ package body Web is
 	begin
 		Write_Query_In_HTML_Internal (Write'Access, Version, Item);
 	end Write_Query_In_HTML;
+	
+	procedure Generic_Write_Query_In_Attribute (Item : in Query_Strings) is
+		procedure Write_2 (Item : String) renames Write;
+	begin
+		Write_Query_In_Attribute_Internal (Write_2'Access, Version, Item);
+	end Generic_Write_Query_In_Attribute;
+	
+	procedure Write_Query_In_Attribute (
+		Stream : not null access Ada.Streams.Root_Stream_Type'Class;
+		Version : in HTML_Version;
+		Item : in Query_Strings)
+	is
+		procedure Write is new Generic_Write (Stream);
+	begin
+		Write_Query_In_Attribute_Internal (Write'Access, Version, Item);
+	end Write_Query_In_Attribute;
 	
 end Web;

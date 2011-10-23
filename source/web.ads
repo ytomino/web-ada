@@ -4,7 +4,7 @@ with Ada.Streams;
 private with Ada.Calendar.Formatting;
 package Web is
 	
-	-- String Map
+	-- string map
 	
 	package String_Maps is
 		new Ada.Containers.Indefinite_Ordered_Maps (String, String);
@@ -13,6 +13,12 @@ package Web is
 		return String;
 	procedure Include (Map : in out String_Maps.Map; Key, Item : in String)
 		renames String_Maps.Include;
+	
+	-- time
+	
+	subtype Time_Name is String (1 .. 29); -- "WWW, DD-MMM-YYYY HH:MM:SS GMT"
+	function Image (Time : Ada.Calendar.Time) return Time_Name;
+	function Value (Image : String) return Ada.Calendar.Time;
 	
 	-- mime-type
 	
@@ -26,7 +32,7 @@ package Web is
 	Text_HTML : constant Mime_Type := "text/html";
 	Text_XML : constant Mime_Type := "text/xml";
 	
-	-- Input
+	-- input
 	
 	function Request_URI return String; -- including query
 	function Request_Path return String; -- excluding query
@@ -57,7 +63,7 @@ package Web is
 	
 	function Checkbox_Value (S : String) return Boolean;
 	
-	-- Output
+	-- output header
 	
 	procedure Header_303 (
 		Stream : not null access Ada.Streams.Root_Stream_Type'Class;
@@ -87,8 +93,6 @@ package Web is
 	
 	procedure Header_Break (
 		Stream : not null access Ada.Streams.Root_Stream_Type'Class);
-	
-	-- HTML
 	
 	type HTML_Version is (HTML, XHTML);
 	
@@ -143,7 +147,23 @@ package Web is
 	
 private
 	
-	Line_Break : aliased constant String := (1 => ASCII.LF);
+	-- time
+	
+	subtype Year_Name is String (1 .. 4);
+	function Year_Image (Year : Natural) return Year_Name;
+	
+	subtype Month_Name is String (1 .. 3);
+	function Month_Image (Month : Ada.Calendar.Month_Number) return Month_Name;
+	function Month_Value (S : String) return Ada.Calendar.Month_Number;
+	
+	subtype Day_Name is String (1 .. 3);
+	function Day_Image (Day : Ada.Calendar.Formatting.Day_Name) return Day_Name;
+	function Day_Value (S : String) return Ada.Calendar.Formatting.Day_Name;
+	
+	subtype String_2 is String (1 .. 2);
+	function Z2_Image (Value : Natural) return String_2;
+	
+	-- input
 	
 	Request_URI_Variable : constant String := "REQUEST_URI";
 	Query_String_Variable : constant String := "QUERY_STRING";
@@ -156,9 +176,8 @@ private
 	
 	function Prefixed_Case_Insensitive (S, Prefix : String) return Boolean;
 	
-	function Month_Image (Month : Ada.Calendar.Month_Number) return String;
-	function Day_Of_Week_Image (Day_Of_Week : Ada.Calendar.Formatting.Day_Name)
-		return String;
-	function Column_Image (Value, Column : Natural) return String;
+	-- output
+	
+	Line_Break : aliased constant String := (1 => ASCII.LF);
 	
 end Web;
