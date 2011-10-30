@@ -1,3 +1,4 @@
+with Ada.Calendar.Time_Zones;
 with Ada.Environment_Variables;
 with Ada.Strings.Equal_Case_Insensitive;
 with Ada.Strings.Fixed;
@@ -276,7 +277,9 @@ package body Web is
 	
 	function Value (Image : String) return Ada.Calendar.Time is
 	begin
-		if Image'Length /= Time_Name'Length then
+		if Image'Length /= Time_Name'Length
+			and then Image'Length /= Time_Name'Length + 2 -- +XXXX form
+		then
 			raise Constraint_Error;
 		else
 			declare
@@ -289,6 +292,7 @@ package body Web is
 				Hou : Ada.Calendar.Formatting.Hour_Number;
 				Min : Ada.Calendar.Formatting.Minute_Number;
 				Sec : Ada.Calendar.Formatting.Second_Number;
+				Offset : Ada.Calendar.Time_Zones.Time_Offset;
 			begin
 				Day_Of_Week := Day_Value (Image (F .. F + 2));
 				if Image (F + 3 .. F + 4) /= ", " then
@@ -315,12 +319,26 @@ package body Web is
 					raise Constraint_Error;
 				end if;
 				Sec := Natural'Value (Image (F + 23 .. F + 24));
-				if Image (F + 25 .. F + 28) /= " GMT" then
-					raise Constraint_Error;
+				if Image'Length = Time_Name'Length + 2 then
+					pragma Assert (F + 30 = Image'Last);
+					if Image (F + 25) /= ' ' or else Image (F + 26) /= '+' then
+						raise Constraint_Error;
+					end if;
+					Offset := Ada.Calendar.Time_Zones.Time_Offset (
+						Natural'Value (Image (F + 27 .. F + 28)) * 60
+						+ Natural'Value (Image (F + 29 .. F + 30)));
+				else
+					pragma Assert (Image'Length = Time_Name'Length);
+					pragma Assert (F + 28 = Image'Last);
+					if Image (F + 25 .. F + 28) /= " GMT" then
+						raise Constraint_Error;
+					end if;
+					Offset := 0;
 				end if;
 				return Ada.Calendar.Formatting.Time_Of (
 					Year, Month, Day,
-					Hou, Min, Sec);
+					Hou, Min, Sec,
+					Time_Zone => Offset);
 			end;
 		end if;
 	end Value;
