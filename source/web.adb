@@ -237,6 +237,9 @@ package body Web is
 		end loop;		
 	end Write_Query_In_HTML_Internal;
 	
+	Begin_Attribute : constant String := "=""";
+	End_Attribute : constant String := """";
+	
 	-- implementation of string map
 	
 	function Element (Map : String_Maps.Map; Key : String; Default : String := "")
@@ -900,6 +903,20 @@ package body Web is
 		Write_In_HTML_Internal (Write'Access, Version, Item, Pre);
 	end Write_In_HTML;
 	
+	procedure Generic_Write_Begin_Attribute (Name : in String) is
+	begin
+		Write (Name);
+		Write (Begin_Attribute);
+	end Generic_Write_Begin_Attribute;
+	
+	procedure Write_Begin_Attribute (
+		Stream : not null access Ada.Streams.Root_Stream_Type'Class;
+		Name : in String) is
+	begin
+		String'Write (Stream, Name);
+		String'Write (Stream, Begin_Attribute);
+	end Write_Begin_Attribute;
+	
 	procedure Generic_Write_In_Attribute (Item : in String) is
 		procedure Write_2 (Item : String) renames Write;
 	begin
@@ -915,6 +932,17 @@ package body Web is
 	begin
 		Write_In_Attribute_Internal (Write'Access, Version, Item);
 	end Write_In_Attribute;
+	
+	procedure Generic_Write_End_Attribute is
+	begin
+		Write (End_Attribute);
+	end Generic_Write_End_Attribute;
+	
+	procedure Write_End_Attribute (
+		Stream : not null access Ada.Streams.Root_Stream_Type'Class) is
+	begin
+		String'Write (Stream, End_Attribute);
+	end Write_End_Attribute;
 	
 	procedure Generic_Write_Query_In_HTML (Item : in Query_Strings) is
 		procedure Write_2 (Item : String) renames Write;

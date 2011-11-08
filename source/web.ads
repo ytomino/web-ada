@@ -31,6 +31,7 @@ package Web is
 	Text_Plain : constant Mime_Type := "text/plain";
 	Text_HTML : constant Mime_Type := "text/html";
 	Text_XML : constant Mime_Type := "text/xml";
+	Application_RSS_XML : constant Mime_Type := "application/rss+xml";
 	
 	-- input
 	
@@ -63,7 +64,7 @@ package Web is
 	
 	function Checkbox_Value (S : String) return Boolean;
 	
-	-- output header
+	-- output
 	
 	procedure Header_303 (
 		Stream : not null access Ada.Streams.Root_Stream_Type'Class;
@@ -115,6 +116,14 @@ package Web is
 	
 	generic
 		with procedure Write (Item : in String);
+	procedure Generic_Write_Begin_Attribute (Name : in String);
+	
+	procedure Write_Begin_Attribute (
+		Stream : not null access Ada.Streams.Root_Stream_Type'Class;
+		Name : in String);
+	
+	generic
+		with procedure Write (Item : in String);
 		Version : in HTML_Version;
 	procedure Generic_Write_In_Attribute (Item : in String);
 	
@@ -122,6 +131,13 @@ package Web is
 		Stream : not null access Ada.Streams.Root_Stream_Type'Class;
 		Version : in HTML_Version;
 		Item : in String);
+	
+	generic
+		with procedure Write (Item : in String);
+	procedure Generic_Write_End_Attribute;
+	
+	procedure Write_End_Attribute (
+		Stream : not null access Ada.Streams.Root_Stream_Type'Class);
 	
 	-- write <input type="hidden" name="KEY" value="ELEMENT">...
 	generic
