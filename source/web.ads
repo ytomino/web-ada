@@ -20,6 +20,12 @@ package Web is
 	function Image (Time : Ada.Calendar.Time) return Time_Name;
 	function Value (Image : String) return Ada.Calendar.Time;
 	
+	-- protocol
+	
+	type Protocol is new String;
+	
+	HTTP : constant Protocol := "http://";
+	
 	-- mime-type
 	
 	type Mime_Type is new String;
@@ -32,6 +38,11 @@ package Web is
 	Text_HTML : constant Mime_Type := "text/html";
 	Text_XML : constant Mime_Type := "text/xml";
 	Application_RSS_XML : constant Mime_Type := "application/rss+xml";
+	
+	-- server
+	
+	function Host return String;
+	function Compose (Protocol : Web.Protocol; Host, Path : String) return String;
 	
 	-- input
 	
@@ -181,14 +192,16 @@ private
 	
 	-- input
 	
-	Request_URI_Variable : constant String := "REQUEST_URI";
-	Query_String_Variable : constant String := "QUERY_STRING";
-	HTTP_Cookie_Variable : constant String := "HTTP_COOKIE";
-	Request_Method_Variable : constant String := "REQUEST_METHOD";
-	Content_Type_Variable : constant String := "CONTENT_TYPE";
 	Content_Length_Variable : constant String := "CONTENT_LENGTH";
+	Content_Type_Variable : constant String := "CONTENT_TYPE";
+	HTTP_Cookie_Variable : constant String := "HTTP_COOKIE";
+	HTTP_Host_Variable : constant String := "HTTP_HOST";
 	Remote_Addr_Variable : constant String := "REMOTE_ADDR";
 	Remote_Host_Variable : constant String := "REMOTE_HOST";
+	Request_Method_Variable : constant String := "REQUEST_METHOD";
+	Request_URI_Variable : constant String := "REQUEST_URI";
+	Server_Name_Variable : constant String := "SERVER_NAME";
+	Query_String_Variable : constant String := "QUERY_STRING";
 	
 	function Prefixed_Case_Insensitive (S, Prefix : String) return Boolean;
 	

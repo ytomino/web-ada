@@ -403,6 +403,30 @@ package body Web is
 		end if;
 	end Z2_Image;
 	
+	-- implementation of host
+	
+	function Host return String is
+	begin
+		if Ada.Environment_Variables.Exists (HTTP_Host_Variable) then
+			return Environment_Variables_Value (HTTP_Host_Variable);
+		else
+			return Environment_Variables_Value (Server_Name_Variable);
+		end if;
+	end Host;
+	
+	function Compose (Protocol : Web.Protocol; Host, Path : String) return String is
+		Path_First : Positive := Path'First;
+	begin
+		if Path_First <= Path'Last
+			and then Path (Path_First) = '/'
+			and then Host'First <= Host'Last
+			and then Host (Host'Last) = '/'
+		then
+			Path_First := Path_First + 1;
+		end if;
+		return String (Protocol) & Host & Path (Path_First .. Path'Last);
+	end Compose;
+	
 	-- implementation of input
 	
 	function Request_URI return String is
