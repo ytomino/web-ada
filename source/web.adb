@@ -414,7 +414,9 @@ package body Web is
 		end if;
 	end Host;
 	
-	function Compose (Protocol : Web.Protocol; Host, Path : String) return String is
+	function Compose (Protocol : Web.Protocol; Host, Path : String)
+		return String
+	is
 		Path_First : Positive := Path'First;
 	begin
 		if Path_First <= Path'Last

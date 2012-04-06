@@ -42,7 +42,8 @@ package Web is
 	-- server
 	
 	function Host return String;
-	function Compose (Protocol : Web.Protocol; Host, Path : String) return String;
+	function Compose (Protocol : Web.Protocol; Host, Path : String)
+		return String;
 	
 	-- input
 	
