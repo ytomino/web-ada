@@ -9,9 +9,15 @@ package Web is
 	package String_Maps is
 		new Ada.Containers.Indefinite_Ordered_Maps (String, String);
 	
-	function Element (Map : String_Maps.Map; Key : String; Default : String := "")
+	function Element (
+		Map : String_Maps.Map;
+		Key : String;
+		Default : String := "")
 		return String;
-	procedure Include (Map : in out String_Maps.Map; Key, Item : in String)
+	procedure Include (
+		Map : in out String_Maps.Map;
+		Key : in String;
+		Item : in String)
 		renames String_Maps.Include;
 	
 	-- time

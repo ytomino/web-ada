@@ -242,10 +242,14 @@ package body Web is
 	
 	-- implementation of string map
 	
-	function Element (Map : String_Maps.Map; Key : String; Default : String := "")
+	function Element (
+		Map : String_Maps.Map;
+		Key : String;
+		Default : String := "")
 		return String
 	is
-		Position : String_Maps.Cursor renames String_Maps.Find (Map, Key);
+		Position : String_Maps.Cursor
+			renames String_Maps.Find (Map, Key);
 	begin
 		if Position = String_Maps.No_Element then
 			return Default;
