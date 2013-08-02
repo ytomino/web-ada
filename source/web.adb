@@ -251,12 +251,48 @@ package body Web is
 		Position : String_Maps.Cursor
 			renames String_Maps.Find (Map, Key);
 	begin
-		if Position = String_Maps.No_Element then
+		if not String_Maps.Has_Element (Position) then
 			return Default;
 		else
 			return String_Maps.Element (Position);
 		end if;
 	end Element;
+	
+	function Element (
+		Map : String_Maps.Map;
+		Key : String;
+		Default : Ada.Streams.Stream_Element_Array := (-1 .. 0 => <>))
+		return Ada.Streams.Stream_Element_Array
+	is
+		Position : String_Maps.Cursor
+			renames String_Maps.Find (Map, Key);
+	begin
+		if not String_Maps.Has_Element (Position) then
+			return Default;
+		else
+			declare
+				Result_String : String_Maps.Constant_Reference_Type
+					renames String_Maps.Constant_Reference (Map, Position);
+				Result_SEA : Ada.Streams.Stream_Element_Array (
+					0 ..
+					Result_String.Element.all'Length - 1);
+				for Result_SEA'Address use Result_String.Element.all'Address;
+			begin
+				return Result_SEA;
+			end;
+		end if;
+	end Element;
+	
+	procedure Include (
+		Map : in out String_Maps.Map;
+		Key : in String;
+		Item : in Ada.Streams.Stream_Element_Array)
+	is
+		Item_String : String (1 .. Item'Length);
+		for Item_String'Address use Item'Address;
+	begin
+		String_Maps.Include (Map, Key, Item_String);
+	end Include;
 	
 	-- implementation of time
 	

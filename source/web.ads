@@ -3,6 +3,7 @@ with Ada.Containers.Indefinite_Ordered_Maps;
 with Ada.Streams;
 private with Ada.Calendar.Formatting;
 package Web is
+	use type Ada.Streams.Stream_Element_Offset;
 	
 	-- string map
 	
@@ -14,11 +15,21 @@ package Web is
 		Key : String;
 		Default : String := "")
 		return String;
+	function Element (
+		Map : String_Maps.Map;
+		Key : String;
+		Default : Ada.Streams.Stream_Element_Array := (-1 .. 0 => <>))
+		return Ada.Streams.Stream_Element_Array;
+	
 	procedure Include (
 		Map : in out String_Maps.Map;
 		Key : in String;
 		Item : in String)
 		renames String_Maps.Include;
+	procedure Include (
+		Map : in out String_Maps.Map;
+		Key : in String;
+		Item : in Ada.Streams.Stream_Element_Array);
 	
 	-- time
 	
