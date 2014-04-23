@@ -3,32 +3,43 @@ SOURCEDIR=../source
 HOST=$(shell gcc -dumpmachine)
 TARGET=$(HOST)
 
+VERSION=$(shell gcc -dumpversion)
+
+BUILDDIR=$(TARGET).build
+
 ifeq ($(TARGET),$(HOST))
 GNATMAKE=gnatmake
-BUILDDIR=build
+BINLN=bin
 else
 GNATMAKE=$(TARGET)-gnatmake
-BUILDDIR=build-$(TARGET)
+BINLN=
 endif
 
 ifneq ($(DRAKE_RTSROOT),)
-DRAKE_RTSDIR=$(DRAKE_RTSROOT)/$(TARGET)
+DRAKE_RTSDIR=$(DRAKE_RTSROOT)/$(TARGET)/$(VERSION)
 endif
 ifneq ($(DRAKE_RTSDIR),)
 MFLAGS=--RTS=$(abspath $(DRAKE_RTSDIR))
 endif
 
+EXAMPLES=$(basename $(filter-out b~%,$(wildcard *.adb)))
+
 CFLAGS=-gnata -gnatwa -gnatyy-3chbs
 
-.PHONY: all clean
+.PHONY: all clean $(EXAMPLES)
 
-all: $(BUILDDIR)/test_encode $(BUILDDIR)/test_time $(BUILDDIR)/test_web
+all: $(BUILDDIR)/test_encode $(BUILDDIR)/test_time $(BUILDDIR)/test_web $(BINLN)
 
 $(BUILDDIR)/%: %.adb $(BUILDDIR) $(IMPORTDIR) $(wildcard $(SOURCEDIR)/*)
-	cd $(BUILDDIR) && $(GNATMAKE) -g $(MFLAGS) -I../$(SOURCEDIR) -I../$(IMPORTDIR) $(CFLAGS) ../$< -largs $(LFLAGS)
+	cd $(BUILDDIR) && $(GNATMAKE) -g $(MFLAGS) -I../$(SOURCEDIR) $(CFLAGS) ../$< -largs $(LFLAGS)
+
+$(BINLN): $(BUILDDIR)
+	ln -s $(BUILDDIR) $(BINLN)
+
+$(EXAMPLES): %: $(BUILDDIR)/%
 
 $(BUILDDIR):
 	mkdir $(BUILDDIR)
 
 clean:
-	-rm -rf build*
+	-rm -rf *.build bin
