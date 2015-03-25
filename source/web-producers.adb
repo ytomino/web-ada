@@ -97,221 +97,217 @@ package body Web.Producers is
 	end Read;
 	
 	procedure Parse (Template : in out Producers.Template) is
-	begin
-		if Template.Data = null or else Template.Data.Root_Nodes /= null then
-			raise Status_Error;
-		else
-			declare
-				Source : constant not null access constant String :=
-					Template.Data.Source;
-				I : Positive := Source'First;
-				Text_First : Positive := I;
-				procedure Process (Nodes : in out Node_Array_Access; Tag : in String) is
-					Text_Last : Natural;
-					Tag_First : Positive;
-					Tag_Last : Natural;
-				begin
-					while I <= Source'Last loop
-						if Source (I) = '<' then
-							Text_Last := I - 1;
+		pragma Check (Dynamic_Predicate,
+			not Is_Empty (Template) or else raise Status_Error);
+		pragma Check (Dynamic_Predicate,
+			not Is_Parsed (Template) or else raise Status_Error);
+		Source : constant not null access constant String :=
+			Template.Data.Source;
+		I : Positive := Source'First;
+		Text_First : Positive := I;
+		procedure Process (Nodes : in out Node_Array_Access; Tag : in String) is
+			Text_Last : Natural;
+			Tag_First : Positive;
+			Tag_Last : Natural;
+		begin
+			while I <= Source'Last loop
+				if Source (I) = '<' then
+					Text_Last := I - 1;
+					I := I + 1;
+					if Source (I) = '/' then
+						I := I + 1;
+						if Source (I) = '?' then
+							-- </?XXX>
 							I := I + 1;
-							if Source (I) = '/' then
+							Tag_First := I;
+							while Source (I) /= '>' loop
+								I := I + 1;
+							end loop;
+							Tag_Last := I - 1;
+							I := I + 1;
+							if Source (Tag_First .. Tag_Last) = Tag then
+								if Text_First <= Text_Last then
+									Append (
+										Nodes,
+										Node'(
+											Text_First => Text_First,
+											Text_Last => Text_Last,
+											Tag_First => 1,
+											Tag_Last => 0,
+											Nodes => null));
+								end if;
+								Text_First := I;
+								return;
+							end if;
+						end if;
+					elsif Source (I) = '?' then
+						I := I + 1;
+						Tag_First := I;
+						loop
+							case Source (I) is
+								when '/' =>
+									Tag_Last := I - 1;
+									I := I + 1;
+									if Source (I) /= '>' then
+										raise Data_Error;
+									end if;
+									exit;
+								when '>' =>
+									Tag_Last := I - 1;
+									exit;
+								when others => null;
+							end case;
+							I := I + 1;
+						end loop;
+						I := I + 1;
+						if Source (I - 2) /= '?' then
+							-- <?XXX>
+							declare
+								Sub_Nodes : Node_Array_Access := null;
+								Current_Text_First : constant Positive := Text_First;
+								Current_Text_Last : constant Natural := Text_Last;
+							begin
+								Text_First := I;
+								if Source (I - 2) /= '/' then
+									Process (Sub_Nodes, Source (Tag_First .. Tag_Last));
+								end if;
+								Append (
+									Nodes,
+									Node'(
+										Text_First => Current_Text_First,
+										Text_Last => Current_Text_Last,
+										Tag_First => Tag_First,
+										Tag_Last => Tag_Last,
+										Nodes => Sub_Nodes));
+							end;
+						end if;
+					else
+						while Source (I) /= '>' loop
+							if Source (I) = '"' then
+								loop
+									I := I + 1;
+									exit when Source (I) = '"';
+								end loop;
+								I := I + 1;
+							elsif Source (I) = '?' then
+								-- <tag ?XXX>
+								Text_Last := I - 1;
 								I := I + 1;
 								if Source (I) = '?' then
-									-- </?XXX>
-									I := I + 1;
+									-- <tag ?? ...>
+									Append (
+										Nodes,
+										Node'(
+											Text_First => Text_First,
+											Text_Last => Text_Last,
+											Tag_First => 1,
+											Tag_Last => 0,
+											Nodes => null));
+									loop
+										I := I + 1;
+										case Source (I) is
+											when '/' | '>' => exit;
+											when '"' =>
+												loop
+													I := I + 1;
+													exit when Source (I) = '"';
+												end loop;
+											when others => null;
+										end case;
+									end loop;
+									Text_First := I;
+								else
 									Tag_First := I;
-									while Source (I) /= '>' loop
+									loop
+										case Source (I) is
+											when ' ' | '=' | '/' | '>' => exit;
+											when others => null;
+										end case;
 										I := I + 1;
 									end loop;
 									Tag_Last := I - 1;
-									I := I + 1;
-									if Source (Tag_First .. Tag_Last) = Tag then
-										if Text_First <= Text_Last then
-											Append (
-												Nodes,
-												Node'(
-													Text_First => Text_First,
-													Text_Last => Text_Last, 
-													Tag_First => 1,
-													Tag_Last => 0,
-													Nodes => null));
-										end if;
-										Text_First := I;
-										return;
-									end if;
-								end if;
-							elsif Source (I) = '?' then
-								I := I + 1;
-								Tag_First := I;
-								loop
-									case Source (I) is
-										when '/' =>
-											Tag_Last := I - 1;
-											I := I + 1;
-											if Source (I) /= '>' then
-												raise Data_Error;
-											end if;
-											exit;
-										when '>' => 
-											Tag_Last := I - 1;
-											exit;
-										when others => null;
-									end case;
-									I := I + 1;
-								end loop;
-								I := I + 1;
-								if Source (I - 2) /= '?' then
-									-- <?XXX>
-									declare
-										Sub_Nodes : Node_Array_Access := null;
-										Current_Text_First : constant Positive := Text_First;
-										Current_Text_Last : constant Natural := Text_Last;
-									begin
-										Text_First := I;
-										if Source (I - 2) /= '/' then
-											Process (Sub_Nodes, Source (Tag_First .. Tag_Last));
-										end if;
-										Append (
-											Nodes,
-											Node'(
-												Text_First => Current_Text_First,
-												Text_Last => Current_Text_Last, 
-												Tag_First => Tag_First,
-												Tag_Last => Tag_Last,
-												Nodes => Sub_Nodes));
-									end;
+									Append (
+										Nodes,
+										Node'(
+											Text_First => Text_First,
+											Text_Last => Text_Last,
+											Tag_First => Tag_First,
+											Tag_Last => Tag_Last,
+											Nodes => null));
+									Text_First := I;
 								end if;
 							else
-								while Source (I) /= '>' loop
-									if Source (I) = '"' then
-										loop
-											I := I + 1;
-											exit when Source (I) = '"';
-										end loop;
-										I := I + 1;
-									elsif Source (I) = '?' then
-										-- <tag ?XXX>
-										Text_Last := I - 1;
-										I := I + 1;
-										if Source (I) = '?' then
-											-- <tag ?? ...>
-											Append (
-												Nodes,
-												Node'(
-													Text_First => Text_First,
-													Text_Last => Text_Last, 
-													Tag_First => 1,
-													Tag_Last => 0,
-													Nodes => null));
-											loop
-												I := I + 1;
-												case Source (I) is
-													when '/' | '>'  => exit;
-													when '"' =>
-														loop
-															I := I + 1;
-															exit when Source (I) = '"';
-														end loop;
-													when others => null;
-												end case;
-											end loop;
-											Text_First := I;
-										else
-											Tag_First := I;
-											loop
-												case Source (I) is
-													when ' ' | '=' | '/' | '>'  => exit;
-													when others => null;
-												end case;
-												I := I + 1;
-											end loop;
-											Tag_Last := I - 1;
-											Append (
-												Nodes,
-												Node'(
-													Text_First => Text_First,
-													Text_Last => Text_Last, 
-													Tag_First => Tag_First,
-													Tag_Last => Tag_Last,
-													Nodes => null));
-											Text_First := I;
-										end if;
-									else
-										I := I + 1;
-									end if;
-								end loop;
+								I := I + 1;
 							end if;
-						else
-							I := I + 1;
-						end if;
-					end loop;
-				end Process;
-				Nodes : Node_Array_Access := null;
-			begin
-				Process (Nodes, "");
-				if Text_First <= Template.Data.Source'Last then
-					Append (
-						Nodes,
-						Node'(
-							Text_First => Text_First,
-							Text_Last => Source'Last, 
-							Tag_First => 1,
-							Tag_Last => 0,
-							Nodes => null));
-				elsif Nodes = null then
-					Nodes := new Node_Array'(1 .. 0 => <>); -- empty source file
+						end loop;
+					end if;
+				else
+					I := I + 1;
 				end if;
-				Template.Data.Root_Nodes := Nodes;
-				Template.Nodes := Nodes;
-			end;
+			end loop;
+		end Process;
+		Nodes : Node_Array_Access := null;
+	begin
+		Process (Nodes, "");
+		if Text_First <= Template.Data.Source'Last then
+			Append (
+				Nodes,
+				Node'(
+					Text_First => Text_First,
+					Text_Last => Source'Last,
+					Tag_First => 1,
+					Tag_Last => 0,
+					Nodes => null));
+		elsif Nodes = null then
+			Nodes := new Node_Array'(1 .. 0 => <>); -- empty source file
 		end if;
+		Template.Data.Root_Nodes := Nodes;
+		Template.Nodes := Nodes;
 	end Parse;
 	
 	procedure Read_Parsed_Information (
 		Stream : not null access Ada.Streams.Root_Stream_Type'Class;
-		Template : in out Producers.Template) is
+		Template : in out Producers.Template)
+	is
+		pragma Check (Dynamic_Predicate,
+			not Is_Empty (Template) or else raise Status_Error);
+		pragma Check (Dynamic_Predicate,
+			not Is_Parsed (Template) or else raise Status_Error);
+		procedure R (Nodes : in out Node_Array_Access) is
+			Length : Integer;
+		begin
+			Integer'Read (Stream, Length);
+			if Length > 0 then
+				Nodes := new Node_Array (1 .. Length);
+				for I in 1 .. Length loop
+					Integer'Read (Stream, Nodes (I).Text_First);
+					Integer'Read (Stream, Nodes (I).Text_Last);
+					Integer'Read (Stream, Nodes (I).Tag_First);
+					Integer'Read (Stream, Nodes (I).Tag_Last);
+					R (Nodes (I).Nodes);
+				end loop;
+			end if;
+		end R;
 	begin
-		if Template.Data = null -- empty
-			or else Template.Nodes /= null -- already parsed
-		then
-			raise Status_Error;
-		else
-			pragma Assert (Template.Data.Root_Nodes = null);
-			declare
-				procedure R (Nodes : in out Node_Array_Access) is
-					Length : Integer;
-				begin
-					Integer'Read (Stream, Length);
-					if Length > 0 then
-						Nodes := new Node_Array (1 .. Length);
-						for I in 1 .. Length loop
-							Integer'Read (Stream, Nodes (I).Text_First);
-							Integer'Read (Stream, Nodes (I).Text_Last);
-							Integer'Read (Stream, Nodes (I).Tag_First);
-							Integer'Read (Stream, Nodes (I).Tag_Last);
-							R (Nodes (I).Nodes);
-						end loop;
-					end if;
-				end R;
-			begin
-				R (Template.Data.Root_Nodes);
-				if Template.Data.Root_Nodes = null then
-					Template.Data.Root_Nodes := new Node_Array'(1 .. 0 => <>);
-				end if;
-				Template.Nodes := Template.Data.Root_Nodes;
-			end;
+		pragma Assert (Template.Data.Root_Nodes = null);
+		R (Template.Data.Root_Nodes);
+		if Template.Data.Root_Nodes = null then
+			Template.Data.Root_Nodes := new Node_Array'(1 .. 0 => <>);
 		end if;
+		Template.Nodes := Template.Data.Root_Nodes;
 	end Read_Parsed_Information;
 	
 	procedure Write_Parsed_Information (
 		Stream : not null access Ada.Streams.Root_Stream_Type'Class;
-		Template : in Producers.Template) is
+		Template : in Producers.Template)
+	is
+		pragma Check (Dynamic_Predicate,
+			not Is_Empty (Template) or else raise Status_Error);
+		pragma Check (Dynamic_Predicate,
+			Is_Parsed (Template) or else raise Status_Error);
 	begin
-		if Template.Nodes = null -- unparsed
-			or else Template.Nodes /= Template.Data.Root_Nodes -- sub template
-		then
-			raise Status_Error;
+		if Template.Nodes /= Template.Data.Root_Nodes then -- sub template
+			raise Constraint_Error;
 		else
 			pragma Assert (Template.Data.Root_Nodes /= null);
 			declare
@@ -341,7 +337,12 @@ package body Web.Producers is
 		Produce : out Produce_Type;
 		Output : not null access Ada.Streams.Root_Stream_Type'Class;
 		Template : in Producers.Template;
-		Part : in String := "") is
+		Part : in String := "")
+	is
+		pragma Check (Dynamic_Predicate,
+			not Is_Empty (Template) or else raise Status_Error);
+		pragma Check (Dynamic_Predicate,
+			Is_Parsed (Template) or else raise Status_Error);
 	begin
 		Produce.Output := Output.all'Unchecked_Access;
 		Produce.Sub_Template.Data := Template.Data;
@@ -413,6 +414,10 @@ package body Web.Producers is
 			Tag : in String;
 			Contents : in Producers.Template) := null)
 	is
+		pragma Check (Dynamic_Predicate,
+			not Is_Empty (Template) or else raise Status_Error);
+		pragma Check (Dynamic_Predicate,
+			Is_Parsed (Template) or else raise Status_Error);
 		Nodes : Node_Array_Access;
 	begin
 		if Part /= "" then
@@ -470,7 +475,11 @@ package body Web.Producers is
 			Handler (Output, Tag, Contents, Params);
 		end Handle;
 	begin
-		Produce (Output, Template, Part, Handle'Access);
+		Produce (
+			Output,
+			Template, -- Status_Error would be raised if Object is not parsed
+			Part,
+			Handle'Access);
 	end Generic_Produce;
 	
 	overriding procedure Finalize (Object : in out Template) is

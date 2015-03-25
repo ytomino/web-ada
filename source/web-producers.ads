@@ -6,6 +6,19 @@ package Web.Producers is
 	
 	type Template is tagged limited private;
 	
+--	subtype Not_Empty_Template is Template
+--		with
+--			Dynamic_Predicate => not Is_Empty (Not_Empty_Template)
+--			Predicate_Failure => Status_Error;
+--	subtype Not_Parsed_Template is Not_Empty_Template
+--		with
+--			Dynamic_Predicate => not Is_Parsed (Not_Parsed_Template)
+--			Predicate_Failure => Status_Error;
+--	subtype Parsed_Template is Not_Empty_Template
+--		with
+--			Dynamic_Predicate => Is_Parsed (Parsed_Template)
+--			Predicate_Failure => Status_Error;
+	
 	function Is_Empty (Object : Template) return Boolean;
 	function Is_Parsed (Object : Template) return Boolean;
 	
@@ -15,20 +28,21 @@ package Web.Producers is
 		Parsing : Boolean := True)
 		return Template;
 	
-	procedure Parse (Template : in out Producers.Template);
+	procedure Parse (
+		Template : in out Producers.Template); -- Not_Parsed_Template
 	
 	procedure Read_Parsed_Information (
 		Stream : not null access Ada.Streams.Root_Stream_Type'Class;
-		Template : in out Producers.Template);
+		Template : in out Producers.Template); -- Not_Parsed_Template
 	procedure Write_Parsed_Information (
 		Stream : not null access Ada.Streams.Root_Stream_Type'Class;
-		Template : in Producers.Template);
+		Template : in Producers.Template); -- Parsed_Template
 	
 	type Produce_Type is limited private;
 	procedure Start_Produce (
 		Produce : out Produce_Type;
 		Output : not null access Ada.Streams.Root_Stream_Type'Class;
-		Template : in Producers.Template;
+		Template : in Producers.Template; -- Parsed_Template
 		Part : in String := "");
 	function More (Produce : Produce_Type) return Boolean;
 	function Tag (Produce : Produce_Type) return String;
@@ -39,7 +53,7 @@ package Web.Producers is
 	
 	procedure Produce (
 		Output : not null access Ada.Streams.Root_Stream_Type'Class;
-		Template : in Producers.Template;
+		Template : in Producers.Template; -- Parsed_Template
 		Part : in String := "";
 		Handler : access procedure (
 			Output : not null access Ada.Streams.Root_Stream_Type'Class;
@@ -50,7 +64,7 @@ package Web.Producers is
 		type Parameter (<>) is limited private;
 	procedure Generic_Produce (
 		Output : not null access Ada.Streams.Root_Stream_Type'Class;
-		Template : in Producers.Template;
+		Template : in Producers.Template; -- Parsed_Template
 		Part : in String := "";
 		Handler : access procedure (
 			Output : not null access Ada.Streams.Root_Stream_Type'Class;
