@@ -59,8 +59,10 @@ package Web.Producers is
 			Params : access Parameter) := null;
 		Params : access Parameter);
 	
-	Status_Error : exception renames Ada.IO_Exceptions.Status_Error;
-	Data_Error : exception renames Ada.IO_Exceptions.Data_Error;
+	Status_Error : exception
+		renames Ada.IO_Exceptions.Status_Error;
+	Data_Error : exception
+		renames Ada.IO_Exceptions.Data_Error;
 	
 private
 	

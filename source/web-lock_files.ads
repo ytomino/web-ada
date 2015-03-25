@@ -38,8 +38,10 @@ package Web.Lock_Files is
 	-- explicit operation
 	procedure Unlock (Object : in out Lock_Type);
 	
-	Name_Error : exception renames Ada.IO_Exceptions.Name_Error;
-	Use_Error : exception renames Ada.IO_Exceptions.Use_Error;
+	Name_Error : exception
+		renames Ada.IO_Exceptions.Name_Error;
+	Use_Error : exception
+		renames Ada.IO_Exceptions.Use_Error;
 	
 	Lock_Error : exception;
 	

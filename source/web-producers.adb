@@ -73,7 +73,7 @@ package body Web.Producers is
 		Stream : not null access Ada.Streams.Root_Stream_Type'Class;
 		Length : Ada.Streams.Stream_Element_Count;
 		Parsing : Boolean := True)
-		return Template 
+		return Template
 	is
 		Source : String_Access := new String (1 .. Natural (Length));
 	begin
@@ -91,8 +91,8 @@ package body Web.Producers is
 			end if;
 		end return;
 	exception
-		when others => 
-			Free (Source); 
+		when others =>
+			Free (Source);
 			raise;
 	end Read;
 	
@@ -411,7 +411,7 @@ package body Web.Producers is
 		Handler : access procedure (
 			Output : not null access Ada.Streams.Root_Stream_Type'Class;
 			Tag : in String;
-			Contents : in Producers.Template) := null) 
+			Contents : in Producers.Template) := null)
 	is
 		Nodes : Node_Array_Access;
 	begin
@@ -461,10 +461,10 @@ package body Web.Producers is
 			Tag : in String;
 			Contents : in Producers.Template;
 			Params : access Parameter) := null;
-		Params : access Parameter) 
+		Params : access Parameter)
 	is
 		procedure Handle (
-			Output : not null access Ada.Streams.Root_Stream_Type'Class; 
+			Output : not null access Ada.Streams.Root_Stream_Type'Class;
 			Tag : in String; Contents : Producers.Template) is
 		begin
 			Handler (Output, Tag, Contents, Params);

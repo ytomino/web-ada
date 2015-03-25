@@ -576,7 +576,7 @@ package body Web is
 	
 	function Decode_URI (S : String) return String is
 		Hex_To_Integer : constant array (Character) of Natural := (
-			'0' => 0, '1' => 1, '2' => 2, '3' => 3, '4' => 4, 
+			'0' => 0, '1' => 1, '2' => 2, '3' => 3, '4' => 4,
 			'5' => 5, '6' => 6, '7' => 7, '8' => 8, '9' => 9,
 			'A' => 10, 'B' => 11, 'C' => 12, 'D' => 13, 'E' => 14, 'F' => 15,
 			'a' => 10, 'b' => 11, 'c' => 12, 'd' => 13, 'e' => 14, 'f' => 15,
@@ -830,11 +830,11 @@ package body Web is
 			begin
 				String'Read (Stream, Input);
 				case Get_Post_Encoded_Kind is
-					when URL_Encoded => 
+					when URL_Encoded =>
 						return Decode_Query_String (Input);
-					when Multipart_Form_Data => 
+					when Multipart_Form_Data =>
 						return Decode_Multipart_Form_Data (Input);
-					when Miscellany => 
+					when Miscellany =>
 						return String_Maps.Empty_Map;
 				end case;
 			end;
