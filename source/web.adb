@@ -327,8 +327,7 @@ package body Web is
 		else
 			declare
 				F : constant Positive := Image'First;
-				Day_Of_Week : Ada.Calendar.Formatting.Day_Name;
-				pragma Unreferenced (Day_Of_Week);
+				Dummy_Day_Of_Week : Ada.Calendar.Formatting.Day_Name;
 				Year : Ada.Calendar.Year_Number;
 				Month : Ada.Calendar.Month_Number;
 				Day : Ada.Calendar.Day_Number;
@@ -337,7 +336,7 @@ package body Web is
 				Sec : Ada.Calendar.Formatting.Second_Number;
 				Offset : Ada.Calendar.Time_Zones.Time_Offset;
 			begin
-				Day_Of_Week := Day_Value (Image (F .. F + 2));
+				Dummy_Day_Of_Week := Day_Value (Image (F .. F + 2));
 				if Image (F + 3 .. F + 4) /= ", " then
 					raise Constraint_Error;
 				end if;
