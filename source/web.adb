@@ -63,10 +63,12 @@ package body Web is
 				when ''' =>
 					Alt := Alt_Apos'Access;
 					goto FLUSH;
-				when ASCII.LF =>
+				when Ada.Characters.Latin_1.LF =>
 					goto NEW_LINE;
-				when ASCII.CR =>
-					if I < Item'Last and then Item (I + 1) = ASCII.LF then
+				when Ada.Characters.Latin_1.CR =>
+					if I < Item'Last
+						and then Item (I + 1) = Ada.Characters.Latin_1.LF
+					then
 						goto CONTINUE; -- skip
 					else
 						goto NEW_LINE;
@@ -142,10 +144,12 @@ package body Web is
 				when '>' =>
 					Alt := Alt_GT'Access;
 					goto FLUSH;
-				when ASCII.LF =>
+				when Ada.Characters.Latin_1.LF =>
 					goto NEW_LINE;
-				when ASCII.CR =>
-					if I < Item'Last and then Item (I + 1) = ASCII.LF then
+				when Ada.Characters.Latin_1.CR =>
+					if I < Item'Last
+						and then Item (I + 1) = Ada.Characters.Latin_1.LF
+					then
 						goto CONTINUE; -- skip
 					else
 						goto NEW_LINE;

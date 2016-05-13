@@ -2,6 +2,7 @@ with Ada.Calendar;
 with Ada.Containers.Indefinite_Ordered_Maps;
 with Ada.Streams;
 private with Ada.Calendar.Formatting;
+private with Ada.Characters.Latin_1;
 package Web is
 	use type Ada.Streams.Stream_Element_Offset;
 	
@@ -225,6 +226,6 @@ private
 	
 	-- output
 	
-	Line_Break : aliased constant String := (1 => ASCII.LF);
+	Line_Break : aliased constant String := (1 => Ada.Characters.Latin_1.LF);
 	
 end Web;
