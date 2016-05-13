@@ -551,9 +551,9 @@ package body Web is
 			declare
 				C : constant Character := S (I);
 			begin
-				if (C >= 'A' and C <= 'Z')
-					or else (C >= 'a' and C <= 'z')
-					or else (C >= '0' and C <= '9')
+				if (C >= 'A' and then C <= 'Z')
+					or else (C >= 'a' and then C <= 'z')
+					or else (C >= '0' and then C <= '9')
 				then
 					Length := Length + 1;
 					Result (Length) := C;
