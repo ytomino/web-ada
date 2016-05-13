@@ -929,9 +929,11 @@ package body Web is
 	procedure Header_Cookie (
 		Stream : not null access Ada.Streams.Root_Stream_Type'Class;
 		Cookie : in Web.Cookie;
-		Expires : in Ada.Calendar.Time) is
+		Expires : in Ada.Calendar.Time)
+	is
+		Aliased_Expires : aliased Ada.Calendar.Time := Expires;
 	begin
-		Header_Cookie_Internal (Stream, Cookie, Expires'Unrestricted_Access);
+		Header_Cookie_Internal (Stream, Cookie, Aliased_Expires'Access);
 	end Header_Cookie;
 	
 	procedure Header_Cookie (
