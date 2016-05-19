@@ -1,6 +1,5 @@
 with Ada.Calendar.Time_Zones;
 with Ada.Environment_Variables;
-with Ada.Strings.Equal_Case_Insensitive;
 with Ada.Strings.Fixed;
 package body Web is
 	use type Ada.Calendar.Day_Duration;
@@ -514,9 +513,9 @@ package body Web is
 	
 	function Post return Boolean is
 	begin
-		return Ada.Strings.Equal_Case_Insensitive (
+		return Equal_Case_Insensitive (
 			Environment_Variables_Value (Request_Method_Variable),
-			"post");
+			L => "post");
 	end Post;
 	
 	function Get_Post_Length return Natural is
@@ -533,12 +532,12 @@ package body Web is
 	begin
 		if Prefixed_Case_Insensitive (
 			Content_Type_Value,
-			String (Content_URL_Encoded))
+			L_Prefix => String (Content_URL_Encoded))
 		then
 			return URL_Encoded;
 		elsif Prefixed_Case_Insensitive (
 			Content_Type_Value,
-			String (Content_Multipart_Form_Data))
+			L_Prefix => String (Content_Multipart_Form_Data))
 		then
 			return Multipart_Form_Data;
 		else
@@ -742,9 +741,9 @@ package body Web is
 								if S (Last) = Character'Val (13) then
 									Last := Last - 1;
 								end if;
-								if Ada.Strings.Equal_Case_Insensitive (
+								if Equal_Case_Insensitive (
 									S (Position .. Position + Content_Disposition'Length - 1),
-									Content_Disposition)
+									L => Content_Disposition)
 								then
 									Position := Position + Content_Disposition'Length;
 									Skip_Spaces (Position'Access);
@@ -764,9 +763,9 @@ package body Web is
 												elsif S (Position) = ';' then
 													Position := Position + 1;
 													Skip_Spaces (Position'Access);
-													if Ada.Strings.Equal_Case_Insensitive (
+													if Equal_Case_Insensitive (
 														S (Position .. Position + File_Name'Length - 1),
-														File_Name)
+														L => File_Name)
 													then
 														Position := Position + File_Name'Length;
 														declare
@@ -774,9 +773,9 @@ package body Web is
 															Content_Type_First, Content_Type_Last : Positive;
 														begin
 															if New_Line (Position'Access) > 0 then
-																if Ada.Strings.Equal_Case_Insensitive (
+																if Equal_Case_Insensitive (
 																	S (Position .. Position + Content_Type'Length - 1),
-																	Content_Type)
+																	L => Content_Type)
 																then
 																	Position := Position + Content_Type'Length;
 																	Skip_Spaces (Position'Access);
@@ -889,15 +888,41 @@ package body Web is
 	
 	function Checkbox_Value (S : String) return Boolean is
 	begin
-		return Ada.Strings.Equal_Case_Insensitive (S, "on");
+		return Equal_Case_Insensitive (S, L => "on");
 	end Checkbox_Value;
 	
-	function Prefixed_Case_Insensitive (S, Prefix : String) return Boolean is
+	function Equal_Case_Insensitive (S, L : String) return Boolean is
+		S_Length : constant Natural := S'Length;
+		L_Length : constant Natural := L'Length;
 	begin
-		return S'Length >= Prefix'Length
-			and then Ada.Strings.Equal_Case_Insensitive (
-				S (S'First .. S'First + Prefix'Length - 1),
-				Prefix);
+		if S_Length /= L_Length then
+			return False;
+		else
+			for I in 0 .. S_Length - 1 loop
+				declare
+					S_Item : Character := S (S'First + I);
+				begin
+					if S_Item in 'A' .. 'Z' then
+						S_Item := Character'Val (
+							Character'Pos (S_Item)
+							+ (Character'Pos ('a') - Character'Pos ('A')));
+					end if;
+					pragma Assert (L (L'First + I) not in 'A' .. 'Z');
+					if S_Item /= L (L'First + I) then
+						return False;
+					end if;
+				end;
+			end loop;
+			return True;
+		end if;
+	end Equal_Case_Insensitive;
+	
+	function Prefixed_Case_Insensitive (S, L_Prefix : String) return Boolean is
+	begin
+		return S'Length >= L_Prefix'Length
+			and then Equal_Case_Insensitive (
+				S (S'First .. S'First + L_Prefix'Length - 1),
+				L_Prefix);
 	end Prefixed_Case_Insensitive;
 	
 	-- implementation of output

@@ -222,7 +222,8 @@ private
 	Server_Name_Variable : constant String := "SERVER_NAME";
 	Query_String_Variable : constant String := "QUERY_STRING";
 	
-	function Prefixed_Case_Insensitive (S, Prefix : String) return Boolean;
+	function Equal_Case_Insensitive (S, L : String) return Boolean;
+	function Prefixed_Case_Insensitive (S, L_Prefix : String) return Boolean;
 	
 	-- output
 	
