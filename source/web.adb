@@ -1,6 +1,7 @@
 with Ada.Calendar.Time_Zones;
 with Ada.Environment_Variables;
 with Ada.Strings.Fixed;
+with System;
 package body Web is
 	use type Ada.Calendar.Day_Duration;
 	use type String_Maps.Cursor;
@@ -40,14 +41,25 @@ package body Web is
 		end if;
 	end Header_Cookie_Internal;
 	
+	procedure By_Stream (Item : in String; Params : in System.Address) is
+		function To_Pointer (Value : System.Address)
+			return access Ada.Streams.Root_Stream_Type'Class
+			with Import, Convention => Intrinsic;
+	begin
+		String'Write (To_Pointer (Params), Item);
+	end By_Stream;
+	
 	Alt_Quot : aliased constant String := "&quot;";
 	Alt_Apos : aliased constant String := "&apos;";
 	Alt_LF : aliased constant String := "&#10;";
 	
 	procedure Write_In_Attribute_Internal (
-		Write : not null access procedure (Item : String);
 		Version : in HTML_Version;
-		Item : in String)
+		Item : in String;
+		Params : in System.Address;
+		Write : not null access procedure (
+			Item : in String;
+			Params : in System.Address))
 	is
 		Alt : access constant String;
 		First : Positive := Item'First;
@@ -85,16 +97,16 @@ package body Web is
 			end case;
 		<<FLUSH>>
 			if First <= Last then
-				Write (Item (First .. Last));
+				Write (Item (First .. Last), Params);
 			end if;
-			Write (Alt.all);
+			Write (Alt.all, Params);
 			First := I + 1;
 			goto CONTINUE;
 		<<CONTINUE>>
 			I := I + 1;
 		end loop;
 		if First <= Last then
-			Write (Item (First .. Last));
+			Write (Item (First .. Last), Params);
 		end if;
 	end Write_In_Attribute_Internal;
 	
@@ -106,10 +118,13 @@ package body Web is
 	Alt_BRS : aliased constant String := "<br />";
 	
 	procedure Write_In_HTML_Internal (
-		Write : not null access procedure (Item : String);
 		Version : in HTML_Version;
 		Item : in String;
-		Pre : in Boolean)
+		Pre : in Boolean;
+		Params : in System.Address;
+		Write : not null access procedure (
+			Item : in String;
+			Params : in System.Address))
 	is
 		Alt : access constant String;
 		First : Positive := Item'First;
@@ -170,23 +185,26 @@ package body Web is
 			end if;
 		<<FLUSH>>
 			if First <= Last then
-				Write (Item (First .. Last));
+				Write (Item (First .. Last), Params);
 			end if;
-			Write (Alt.all);
+			Write (Alt.all, Params);
 			First := I + 1;
 			goto CONTINUE;
 		<<CONTINUE>>
 			I := I + 1;
 		end loop;
 		if First <= Last then
-			Write (Item (First .. Last));
+			Write (Item (First .. Last), Params);
 		end if;
 	end Write_In_HTML_Internal;
 	
 	procedure Write_Query_In_Attribute_Internal (
-		Write : not null access procedure (Item : String);
 		Version : in HTML_Version;
-		Item : in Query_Strings) is
+		Item : in Query_Strings;
+		Params : in System.Address;
+		Write : not null access procedure (
+			Item : in String;
+			Params : in System.Address)) is
 	begin
 		if not Item.Is_Empty then
 			declare
@@ -195,19 +213,21 @@ package body Web is
 			begin
 				while String_Maps.Has_Element (Position) loop
 					if Position = First then
-						Write ("?");
+						Write ("?", Params);
 					else
-						Write ("&");
+						Write ("&", Params);
 					end if;
 					Write_In_Attribute_Internal (
-						Write,
 						Version,
-						String_Maps.Key (Position));
-					Write ("=");
+						String_Maps.Key (Position),
+						Params,
+						Write => Write);
+					Write ("=", Params);
 					Write_In_Attribute_Internal (
-						Write,
 						Version,
-						String_Maps.Element (Position));
+						String_Maps.Element (Position),
+						Params,
+						Write => Write);
 					String_Maps.Next (Position);
 				end loop;
 			end;			
@@ -215,26 +235,33 @@ package body Web is
 	end Write_Query_In_Attribute_Internal;
 	
 	procedure Write_Query_In_HTML_Internal (
-		Write : not null access procedure (Item : String);
 		Version : in HTML_Version;
-		Item : in Query_Strings)
+		Item : in Query_Strings;
+		Params : in System.Address;
+		Write : not null access procedure (
+			Item : in String;
+			Params : in System.Address))
 	is
 		Position : String_Maps.Cursor := Item.First;
 	begin
 		while String_Maps.Has_Element (Position) loop
-			Write ("<input type=""hidden"" name=""");
+			Write ("<input type=""hidden"" name=""", Params);
 			Write_In_Attribute_Internal (
-				Write,
 				Version,
-				String_Maps.Key (Position));
-			Write (""" value=""");
+				String_Maps.Key (Position),
+				Params,
+				Write => Write);
+			Write (""" value=""", Params);
 			Write_In_Attribute_Internal (
-				Write,
 				Version,
-				String_Maps.Element (Position));
+				String_Maps.Element (Position),
+				Params,
+				Write => Write);
 			case Version is
-				when HTML => Write (""">");
-				when XHTML => Write (""" />");
+				when HTML =>
+					Write (""">", Params);
+				when XHTML =>
+					Write (""" />", Params);
 			end case;
 			String_Maps.Next (Position);
 		end loop;		
@@ -983,9 +1010,18 @@ package body Web is
 		Item : in String;
 		Pre : in Boolean := False)
 	is
-		procedure Write_2 (Item : String) renames Write;
+		procedure By_Callback (Item : in String; Params : in System.Address) is
+			pragma Unreferenced (Params);
+		begin
+			Write (Item);
+		end By_Callback;
 	begin
-		Write_In_HTML_Internal (Write_2'Access, Version, Item, Pre);
+		Write_In_HTML_Internal (
+			Version,
+			Item,
+			Pre,
+			System.Null_Address,
+			Write => By_Callback'Access);
 	end Generic_Write_In_HTML;
 	
 	procedure Write_In_HTML (
@@ -994,9 +1030,16 @@ package body Web is
 		Item : in String;
 		Pre : in Boolean := False)
 	is
-		procedure Write is new Generic_Write (Stream);
+		function To_Address (Value : access Ada.Streams.Root_Stream_Type'Class)
+			return System.Address
+			with Import, Convention => Intrinsic;
 	begin
-		Write_In_HTML_Internal (Write'Access, Version, Item, Pre);
+		Write_In_HTML_Internal (
+			Version,
+			Item,
+			Pre,
+			To_Address (Stream),
+			Write => By_Stream'Access);
 	end Write_In_HTML;
 	
 	procedure Generic_Write_Begin_Attribute (Name : in String) is
@@ -1014,9 +1057,17 @@ package body Web is
 	end Write_Begin_Attribute;
 	
 	procedure Generic_Write_In_Attribute (Item : in String) is
-		procedure Write_2 (Item : String) renames Write;
+		procedure By_Callback (Item : in String; Params : in System.Address) is
+			pragma Unreferenced (Params);
+		begin
+			Write (Item);
+		end By_Callback;
 	begin
-		Write_In_Attribute_Internal (Write_2'Access, Version, Item);
+		Write_In_Attribute_Internal (
+			Version,
+			Item,
+			System.Null_Address,
+			Write => By_Callback'Access);
 	end Generic_Write_In_Attribute;
 	
 	procedure Write_In_Attribute (
@@ -1024,9 +1075,15 @@ package body Web is
 		Version : in HTML_Version;
 		Item : in String)
 	is
-		procedure Write is new Generic_Write (Stream);
+		function To_Address (Value : access Ada.Streams.Root_Stream_Type'Class)
+			return System.Address
+			with Import, Convention => Intrinsic;
 	begin
-		Write_In_Attribute_Internal (Write'Access, Version, Item);
+		Write_In_Attribute_Internal (
+			Version,
+			Item,
+			To_Address (Stream),
+			Write => By_Stream'Access);
 	end Write_In_Attribute;
 	
 	procedure Generic_Write_End_Attribute is
@@ -1041,9 +1098,17 @@ package body Web is
 	end Write_End_Attribute;
 	
 	procedure Generic_Write_Query_In_HTML (Item : in Query_Strings) is
-		procedure Write_2 (Item : String) renames Write;
+		procedure By_Callback (Item : in String; Params : in System.Address) is
+			pragma Unreferenced (Params);
+		begin
+			Write (Item);
+		end By_Callback;
 	begin
-		Write_Query_In_HTML_Internal (Write_2'Access, Version, Item);
+		Write_Query_In_HTML_Internal (
+			Version,
+			Item,
+			System.Null_Address,
+			Write => By_Callback'Access);
 	end Generic_Write_Query_In_HTML;
 	
 	procedure Write_Query_In_HTML (
@@ -1051,15 +1116,29 @@ package body Web is
 		Version : in HTML_Version;
 		Item : in Query_Strings)
 	is
-		procedure Write is new Generic_Write (Stream);
+		function To_Address (Value : access Ada.Streams.Root_Stream_Type'Class)
+			return System.Address
+			with Import, Convention => Intrinsic;
 	begin
-		Write_Query_In_HTML_Internal (Write'Access, Version, Item);
+		Write_Query_In_HTML_Internal (
+			Version,
+			Item,
+			To_Address (Stream),
+			Write => By_Stream'Access);
 	end Write_Query_In_HTML;
 	
 	procedure Generic_Write_Query_In_Attribute (Item : in Query_Strings) is
-		procedure Write_2 (Item : String) renames Write;
+		procedure By_Callback (Item : in String; Params : in System.Address) is
+			pragma Unreferenced (Params);
+		begin
+			Write (Item);
+		end By_Callback;
 	begin
-		Write_Query_In_Attribute_Internal (Write_2'Access, Version, Item);
+		Write_Query_In_Attribute_Internal (
+			Version,
+			Item,
+			System.Null_Address,
+			Write => By_Callback'Access);
 	end Generic_Write_Query_In_Attribute;
 	
 	procedure Write_Query_In_Attribute (
@@ -1067,9 +1146,15 @@ package body Web is
 		Version : in HTML_Version;
 		Item : in Query_Strings)
 	is
-		procedure Write is new Generic_Write (Stream);
+		function To_Address (Value : access Ada.Streams.Root_Stream_Type'Class)
+			return System.Address
+			with Import, Convention => Intrinsic;
 	begin
-		Write_Query_In_Attribute_Internal (Write'Access, Version, Item);
+		Write_Query_In_Attribute_Internal (
+			Version,
+			Item,
+			To_Address (Stream),
+			Write => By_Stream'Access);
 	end Write_Query_In_Attribute;
 	
 end Web;
