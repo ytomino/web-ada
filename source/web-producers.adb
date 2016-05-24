@@ -333,6 +333,12 @@ package body Web.Producers is
 		end if;
 	end Write_Parsed_Information;
 	
+	overriding procedure Finalize (Object : in out Template) is
+	begin
+		Release (Object.Data);
+		Object.Nodes := null;
+	end Finalize;
+	
 	procedure Start_Produce (
 		Produce : out Produce_Type;
 		Output : not null access Ada.Streams.Root_Stream_Type'Class;
@@ -481,11 +487,5 @@ package body Web.Producers is
 			Part,
 			Handle'Access);
 	end Generic_Produce;
-	
-	overriding procedure Finalize (Object : in out Template) is
-	begin
-		Release (Object.Data);
-		Object.Nodes := null;
-	end Finalize;
 	
 end Web.Producers;
