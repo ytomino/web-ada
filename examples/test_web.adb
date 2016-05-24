@@ -1,4 +1,5 @@
 with Ada.Calendar;
+with Ada.Command_Line;
 with Ada.Directories;
 with Ada.Streams.Stream_IO;
 with Ada.Text_IO.Text_Streams;
@@ -9,6 +10,9 @@ with Web.RSS;
 pragma Unreferenced (Web.RSS);
 procedure test_web is
 	use type Ada.Calendar.Time;
+	By_Iterator : constant Boolean :=
+		Ada.Command_Line.Argument_Count >= 1
+		and then Ada.Command_Line.Argument (1) = "--iterator";
 	Template_Source : constant String := "template.html";
 	Template_Cache : constant String := "template-cache.dat";
 	Lock : Web.Lock_Files.Lock_Type := Web.Lock_Files.Lock ("lockfile");
@@ -34,6 +38,14 @@ begin
 			begin
 				if Tag = "title" then
 					Web.Write_In_HTML (Output, Web.HTML, "<<sample>>");
+				elsif Tag = "generator" then
+					Web.Write_Begin_Attribute (Output, "content");
+					if By_Iterator then
+						Web.Write_In_Attribute (Output, Web.HTML, "by iterator");
+					else -- by closure
+						Web.Write_In_Attribute (Output, Web.HTML, "by closure");
+					end if;
+					Web.Write_End_Attribute (Output);
 				elsif Tag = "href" then
 					String'Write (Output, "href=""");
 					Web.Write_In_Attribute (Output, Web.HTML,
@@ -41,9 +53,21 @@ begin
 					Character'Write (Output, '"');
 				elsif Tag = "is_cache" then
 					if Is_Cache then
-						Web.Producers.Produce (Output, Contents, "true");
+						if By_Iterator then
+							for I in Contents.Iterate (Output, "true") loop
+								raise Web.Producers.Data_Error;
+							end loop;
+						else -- by closure
+							Web.Producers.Produce (Output, Contents, "true");
+						end if;
 					else
-						Web.Producers.Produce (Output, Contents, "false");
+						if By_Iterator then
+							for I in Contents.Iterate (Output, "false") loop
+								raise Web.Producers.Data_Error;
+							end loop;
+						else -- by closure
+							Web.Producers.Produce (Output, Contents, "false");
+						end if;
 					end if;
 				else
 					raise Web.Producers.Data_Error;
@@ -82,7 +106,16 @@ begin
 					Template);
 				Ada.Streams.Stream_IO.Close (Template_Cache_File);
 			end if;
-			Web.Producers.Produce (Output, Template, Handler => Handler'Access);
+			if By_Iterator then
+				for I in Template.Iterate (Output) loop
+					Handler (
+						Output,
+						Web.Producers.Tag (I),
+						Web.Producers.Contents (I).all);
+				end loop;
+			else -- by closure
+				Web.Producers.Produce (Output, Template, Handler => Handler'Access);
+			end if;
 		end;
 		Ada.Streams.Stream_IO.Close (Template_Source_File);
 	end;

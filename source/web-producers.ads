@@ -1,5 +1,6 @@
 with Ada.Finalization;
 with Ada.IO_Exceptions;
+with Ada.Iterator_Interfaces;
 with Ada.Streams;
 with Ada.Unchecked_Deallocation;
 package Web.Producers is
@@ -52,6 +53,24 @@ package Web.Producers is
 		return not null access constant Template;
 	procedure Next (Produce : in out Produce_Type);
 	procedure End_Produce (Produce : in out Produce_Type);
+	
+	-- Producing by generalized iterator:
+	
+	type Cursor is private;
+	
+	function Has_Element (Position : Cursor) return Boolean;
+	function Tag (Position : Cursor) return String;
+	function Contents (Position : Cursor)
+		return not null access constant Template;
+	
+	package Template_Iterator_Interfaces is
+		new Ada.Iterator_Interfaces (Cursor, Has_Element);
+	
+	function Iterate (
+		Template : Producers.Template;
+		Output : not null access Ada.Streams.Root_Stream_Type'Class;
+		Part : String := "")
+		return Template_Iterator_Interfaces.Forward_Iterator'Class;
 	
 	-- Producing by closure:
 	
@@ -126,5 +145,20 @@ private
 		Position : Natural;
 		Sub_Template : aliased Template;
 	end record;
+	
+	type Cursor is record
+		Index : Natural := 0;
+		Produce : access constant Produce_Type := null;
+	end record;
+	
+	type Template_Iterator is
+		limited new Template_Iterator_Interfaces.Forward_Iterator with
+	record
+		Produce : aliased Produce_Type;
+	end record;
+	
+	overriding function First (Object : Template_Iterator) return Cursor;
+	overriding function Next (Object : Template_Iterator; Position : Cursor)
+		return Cursor;
 	
 end Web.Producers;

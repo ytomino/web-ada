@@ -369,8 +369,7 @@ package body Web.Producers is
 	function More (Produce : Produce_Type) return Boolean is
 	begin
 		return Produce.Nodes /= null
-			and then Produce.Position <= Produce.Nodes'Last
-			and then Produce.Nodes (Produce.Position).Tag_Last > 0;
+			and then Produce.Position < Produce.Nodes'Last;
 	end More;
 	
 	function Tag (Produce : Produce_Type) return String is
@@ -386,32 +385,102 @@ package body Web.Producers is
 	end Contents;
 	
 	procedure Next (Produce : in out Produce_Type) is
+		pragma Check (Pre, Produce.Nodes /= null or else raise Status_Error);
 	begin
-		if Produce.Nodes /= null
-			and then Produce.Position <= Produce.Nodes'Last
-		then
+		while Produce.Position < Produce.Nodes'Last loop
 			Produce.Position := Produce.Position + 1;
-			if Produce.Position <= Produce.Nodes'Last then
-				declare
-					It : Node renames Produce.Nodes (Produce.Position);
-				begin
-					String'Write (
-						Produce.Output,
-						Produce.Sub_Template.Data.Source (It.Text_First .. It.Text_Last));
-					Produce.Sub_Template.Nodes := It.Nodes;
-				end;
-			end if;
-		else
-			raise Constraint_Error; -- ???
-		end if;
+			declare
+				It : Node renames Produce.Nodes (Produce.Position);
+			begin
+				String'Write (
+					Produce.Output,
+					Produce.Sub_Template.Data.Source (It.Text_First .. It.Text_Last));
+				Produce.Sub_Template.Nodes := It.Nodes;
+				exit when It.Tag_First <= It.Tag_Last;
+			end;
+		end loop;
 	end Next;
 	
 	procedure End_Produce (Produce : in out Produce_Type) is
 	begin
 		Produce.Output := null;
 		Produce.Nodes := null;
+		Produce.Position := 0;
 		Finalize (Produce.Sub_Template);
 	end End_Produce;
+	
+	-- producing by generalized iterator
+	
+	function Current (Object : Template_Iterator) return Cursor is
+		Index : Natural;
+		Produce : access constant Produce_Type;
+	begin
+		if More (Object.Produce) then
+			Index := Object.Produce.Position;
+			Produce := Object.Produce'Unchecked_Access;
+		else
+			Index := 0;
+			Produce := null;
+		end if;
+		return (Index => Index, Produce => Produce);
+	end Current;
+	
+	-- implementation of producing by generalized iterator
+	
+	function Has_Element (Position : Cursor) return Boolean is
+	begin
+		return Position.Index > 0;
+	end Has_Element;
+	
+	function Tag (Position : Cursor) return String is
+	begin
+		return Tag (Position.Produce.all);
+	end Tag;
+	
+	function Contents (Position : Cursor)
+		return not null access constant Template
+	is
+		pragma Check (Pre,
+			Check => Has_Element (Position) or else raise Constraint_Error);
+		pragma Check (Pre,
+			Check =>
+				Position.Index = Position.Produce.Position
+				or else raise Status_Error);
+	begin
+		return Contents (Position.Produce.all);
+	end Contents;
+	
+	function Iterate (
+		Template : Producers.Template;
+		Output : not null access Ada.Streams.Root_Stream_Type'Class;
+		Part : String := "")
+		return Template_Iterator_Interfaces.Forward_Iterator'Class is
+	begin
+		return Result : Template_Iterator do
+			Start_Produce (Result.Produce, Output, Template, Part);
+		end return;
+	end Iterate;
+	
+	overriding function First (Object : Template_Iterator) return Cursor is
+		pragma Check (Pre,
+			Check => Object.Produce.Position = 1 or else raise Status_Error);
+	begin
+		return Current (Object);
+	end First;
+	
+	overriding function Next (Object : Template_Iterator; Position : Cursor)
+		return Cursor
+	is
+		pragma Check (Pre,
+			Check => Has_Element (Position) or else raise Constraint_Error);
+		pragma Check (Pre,
+			Check =>
+				Position.Index = Position.Produce.Position
+				or else raise Status_Error);
+	begin
+		Next (Object.Produce'Unrestricted_Access.all);
+		return Current (Object);
+	end Next;
 	
 	-- implementation of producing by closure
 	
