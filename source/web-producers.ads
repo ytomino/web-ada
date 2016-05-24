@@ -38,6 +38,8 @@ package Web.Producers is
 		Stream : not null access Ada.Streams.Root_Stream_Type'Class;
 		Template : in Producers.Template); -- Parsed_Template
 	
+	-- Producing by while loop:
+	
 	type Produce_Type is limited private;
 	procedure Start_Produce (
 		Produce : out Produce_Type;
@@ -50,6 +52,8 @@ package Web.Producers is
 		return not null access constant Template;
 	procedure Next (Produce : in out Produce_Type);
 	procedure End_Produce (Produce : in out Produce_Type);
+	
+	-- Producing by closure:
 	
 	procedure Produce (
 		Output : not null access Ada.Streams.Root_Stream_Type'Class;
@@ -72,6 +76,8 @@ package Web.Producers is
 			Contents : in Producers.Template;
 			Params : access Parameter) := null;
 		Params : access Parameter);
+	
+	-- Exceptions:
 	
 	Status_Error : exception
 		renames Ada.IO_Exceptions.Status_Error;

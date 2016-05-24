@@ -339,6 +339,8 @@ package body Web.Producers is
 		Object.Nodes := null;
 	end Finalize;
 	
+	-- implementation of producing by while loop
+	
 	procedure Start_Produce (
 		Produce : out Produce_Type;
 		Output : not null access Ada.Streams.Root_Stream_Type'Class;
@@ -410,6 +412,8 @@ package body Web.Producers is
 		Produce.Nodes := null;
 		Finalize (Produce.Sub_Template);
 	end End_Produce;
+	
+	-- implementation of producing by closure
 	
 	procedure Produce (
 		Output : not null access Ada.Streams.Root_Stream_Type'Class;
