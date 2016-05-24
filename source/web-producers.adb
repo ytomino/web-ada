@@ -344,19 +344,23 @@ package body Web.Producers is
 	procedure Start_Produce (
 		Produce : out Produce_Type;
 		Output : not null access Ada.Streams.Root_Stream_Type'Class;
-		Template : in Producers.Template;
+		Template : in Producers.Template'Class;
 		Part : in String := "")
 	is
 		pragma Check (Dynamic_Predicate,
-			not Is_Empty (Template) or else raise Status_Error);
+			Check =>
+				not Is_Empty (Producers.Template (Template))
+				or else raise Status_Error);
 		pragma Check (Dynamic_Predicate,
-			Is_Parsed (Template) or else raise Status_Error);
+			Check =>
+				Is_Parsed (Producers.Template (Template))
+				or else raise Status_Error);
 	begin
 		Produce.Output := Output.all'Unchecked_Access;
 		Produce.Sub_Template.Data := Template.Data;
 		Template.Data.Reference_Count := Template.Data.Reference_Count + 1;
 		if Part /= "" then
-			Produce.Nodes := Find_Part (Template, Part);
+			Produce.Nodes := Find_Part (Producers.Template (Template), Part);
 		else
 			Produce.Nodes := Template.Nodes;
 		end if;
@@ -452,7 +456,7 @@ package body Web.Producers is
 	end Contents;
 	
 	function Iterate (
-		Template : Producers.Template;
+		Template : Producers.Template'Class;
 		Output : not null access Ada.Streams.Root_Stream_Type'Class;
 		Part : String := "")
 		return Template_Iterator_Interfaces.Forward_Iterator'Class is
@@ -487,7 +491,7 @@ package body Web.Producers is
 	
 	procedure Produce (
 		Output : not null access Ada.Streams.Root_Stream_Type'Class;
-		Template : in Producers.Template;
+		Template : in Producers.Template'Class;
 		Part : in String := "";
 		Handler : access procedure (
 			Output : not null access Ada.Streams.Root_Stream_Type'Class;
@@ -495,13 +499,17 @@ package body Web.Producers is
 			Contents : in Producers.Template) := null)
 	is
 		pragma Check (Dynamic_Predicate,
-			not Is_Empty (Template) or else raise Status_Error);
+			Check =>
+				not Is_Empty (Producers.Template (Template))
+				or else raise Status_Error);
 		pragma Check (Dynamic_Predicate,
-			Is_Parsed (Template) or else raise Status_Error);
+			Check =>
+				Is_Parsed (Producers.Template (Template))
+				or else raise Status_Error);
 		Nodes : Node_Array_Access;
 	begin
 		if Part /= "" then
-			Nodes := Find_Part (Template, Part);
+			Nodes := Find_Part (Producers.Template (Template), Part);
 		else
 			Nodes := Template.Nodes;
 		end if;
@@ -539,7 +547,7 @@ package body Web.Producers is
 	
 	procedure Generic_Produce (
 		Output : not null access Ada.Streams.Root_Stream_Type'Class;
-		Template : in Producers.Template;
+		Template : in Producers.Template'Class;
 		Part : in String := "";
 		Handler : access procedure (
 			Output : not null access Ada.Streams.Root_Stream_Type'Class;

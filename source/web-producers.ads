@@ -49,7 +49,7 @@ package Web.Producers is
 	procedure Start_Produce (
 		Produce : out Produce_Type;
 		Output : not null access Ada.Streams.Root_Stream_Type'Class;
-		Template : in Producers.Template; -- Parsed_Template
+		Template : in Producers.Template'Class; -- Parsed_Template
 		Part : in String := "");
 	function More (Produce : Produce_Type) return Boolean;
 	function Tag (Produce : Produce_Type) return String;
@@ -71,7 +71,7 @@ package Web.Producers is
 		new Ada.Iterator_Interfaces (Cursor, Has_Element);
 	
 	function Iterate (
-		Template : Producers.Template;
+		Template : Producers.Template'Class;
 		Output : not null access Ada.Streams.Root_Stream_Type'Class;
 		Part : String := "")
 		return Template_Iterator_Interfaces.Forward_Iterator'Class;
@@ -80,7 +80,7 @@ package Web.Producers is
 	
 	procedure Produce (
 		Output : not null access Ada.Streams.Root_Stream_Type'Class;
-		Template : in Producers.Template; -- Parsed_Template
+		Template : in Producers.Template'Class; -- Parsed_Template
 		Part : in String := "";
 		Handler : access procedure (
 			Output : not null access Ada.Streams.Root_Stream_Type'Class;
@@ -91,7 +91,7 @@ package Web.Producers is
 		type Parameter (<>) is limited private;
 	procedure Generic_Produce (
 		Output : not null access Ada.Streams.Root_Stream_Type'Class;
-		Template : in Producers.Template; -- Parsed_Template
+		Template : in Producers.Template'Class; -- Parsed_Template
 		Part : in String := "";
 		Handler : access procedure (
 			Output : not null access Ada.Streams.Root_Stream_Type'Class;
