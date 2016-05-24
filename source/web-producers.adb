@@ -379,9 +379,10 @@ package body Web.Producers is
 	end Tag;
 	
 	function Contents (Produce : Produce_Type)
-		return not null access constant Template is
+		return Template_Constant_Reference_Type is
 	begin
-		return Produce.Sub_Template'Unchecked_Access;
+		return (Element => Produce.Sub_Template'Unrestricted_Access);
+			-- [gcc-6] wrongly detected as dangling
 	end Contents;
 	
 	procedure Next (Produce : in out Produce_Type) is
@@ -438,7 +439,7 @@ package body Web.Producers is
 	end Tag;
 	
 	function Contents (Position : Cursor)
-		return not null access constant Template
+		return Template_Constant_Reference_Type
 	is
 		pragma Check (Pre,
 			Check => Has_Element (Position) or else raise Constraint_Error);

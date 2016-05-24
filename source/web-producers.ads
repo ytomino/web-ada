@@ -41,6 +41,10 @@ package Web.Producers is
 	
 	-- Producing by while loop:
 	
+	type Template_Constant_Reference_Type (
+		Element : not null access constant Template) is null record
+		with Implicit_Dereference => Element;
+	
 	type Produce_Type is limited private;
 	procedure Start_Produce (
 		Produce : out Produce_Type;
@@ -50,7 +54,7 @@ package Web.Producers is
 	function More (Produce : Produce_Type) return Boolean;
 	function Tag (Produce : Produce_Type) return String;
 	function Contents (Produce : Produce_Type)
-		return not null access constant Template;
+		return Template_Constant_Reference_Type;
 	procedure Next (Produce : in out Produce_Type);
 	procedure End_Produce (Produce : in out Produce_Type);
 	
@@ -61,7 +65,7 @@ package Web.Producers is
 	function Has_Element (Position : Cursor) return Boolean;
 	function Tag (Position : Cursor) return String;
 	function Contents (Position : Cursor)
-		return not null access constant Template;
+		return Template_Constant_Reference_Type;
 	
 	package Template_Iterator_Interfaces is
 		new Ada.Iterator_Interfaces (Cursor, Has_Element);

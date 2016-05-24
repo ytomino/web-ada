@@ -111,7 +111,7 @@ begin
 					Handler (
 						Output,
 						Web.Producers.Tag (I),
-						Web.Producers.Contents (I).all);
+						Web.Producers.Contents (I));
 				end loop;
 			else -- by closure
 				Web.Producers.Produce (Output, Template, Handler => Handler'Access);
