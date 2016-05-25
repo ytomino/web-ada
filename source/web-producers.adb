@@ -43,18 +43,22 @@ package body Web.Producers is
 	function Find_Part (Template : Producers.Template; Part : String)
 		return Node_Array_Access is
 	begin
-		if Template.Nodes /= null then
-			for I in Template.Nodes'Range loop
-				declare
-					It : Node renames Template.Nodes (I);
-				begin
-					if Template.Data.Source (It.Tag_First .. It.Tag_Last) = Part then
-						return It.Nodes; -- OK
-					end if;
-				end;
-			end loop;
+		if Part'Length = 0 then
+			return Template.Nodes;
+		else
+			if Template.Nodes /= null then
+				for I in Template.Nodes'Range loop
+					declare
+						It : Node renames Template.Nodes (I);
+					begin
+						if Template.Data.Source (It.Tag_First .. It.Tag_Last) = Part then
+							return It.Nodes; -- OK
+						end if;
+					end;
+				end loop;
+			end if;
+			raise Data_Error with """" & Part & """ was not found.";
 		end if;
-		raise Data_Error with """" & Part & """ was not found.";
 	end Find_Part;
 	
 	-- implementation
@@ -359,11 +363,7 @@ package body Web.Producers is
 		Produce.Output := Output;
 		Produce.Sub_Template.Data := Template.Data;
 		Template.Data.Reference_Count := Template.Data.Reference_Count + 1;
-		if Part /= "" then
-			Produce.Nodes := Find_Part (Producers.Template (Template), Part);
-		else
-			Produce.Nodes := Template.Nodes;
-		end if;
+		Produce.Nodes := Find_Part (Producers.Template (Template), Part);
 		if Produce.Nodes /= null then
 			Produce.Position := Produce.Nodes'First - 1;
 			Next (Produce);
@@ -529,13 +529,9 @@ package body Web.Producers is
 			Check =>
 				Is_Parsed (Producers.Template (Template))
 				or else raise Status_Error);
-		Nodes : Node_Array_Access;
+		Nodes : constant Node_Array_Access :=
+			Find_Part (Producers.Template (Template), Part);
 	begin
-		if Part /= "" then
-			Nodes := Find_Part (Producers.Template (Template), Part);
-		else
-			Nodes := Template.Nodes;
-		end if;
 		if Nodes /= null then
 			for I in Nodes'Range loop
 				declare
@@ -605,13 +601,9 @@ package body Web.Producers is
 			Check =>
 				Is_Parsed (Producers.Template (Template))
 				or else raise Status_Error);
-		Nodes : Node_Array_Access;
+		Nodes : constant Node_Array_Access :=
+			Find_Part (Producers.Template (Template), Part);
 	begin
-		if Part /= "" then
-			Nodes := Find_Part (Producers.Template (Template), Part);
-		else
-			Nodes := Template.Nodes;
-		end if;
 		if Nodes /= null then
 			for I in Nodes'Range loop
 				declare
