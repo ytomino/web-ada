@@ -383,10 +383,15 @@ package body Web.Producers is
 	end Tag;
 	
 	function Contents (Produce : Produce_Type)
-		return Template_Constant_Reference_Type is
+		return Template_Constant_Reference_Type
+	is
+		X : constant not null access constant Template :=
+			Produce.Sub_Template'Access;
 	begin
-		return (Element => Produce.Sub_Template'Unrestricted_Access);
-			-- [gcc-6] wrongly detected as dangling
+		return (Element => X);
+--		return (Element => Produce.Sub_Template'Access);
+		-- Note: [gcc-6] It is wrongly detected as dangling. (Bug 70867)
+		-- It's able to avoid this bug by using a temporary variable.
 	end Contents;
 	
 	procedure Next (Produce : in out Produce_Type) is
@@ -501,7 +506,7 @@ package body Web.Producers is
 				Position.Index = Position.Produce.Position
 				or else raise Status_Error);
 	begin
-		Next (Object.Produce'Unrestricted_Access.all);
+		Next (Object.Variable_View.Produce);
 		return Current (Object);
 	end Next;
 	

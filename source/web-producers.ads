@@ -158,6 +158,8 @@ private
 	type Template_Iterator is
 		limited new Template_Iterator_Interfaces.Forward_Iterator with
 	record
+		Variable_View : not null access Template_Iterator :=
+			Template_Iterator'Unchecked_Access;
 		Produce : aliased Produce_Type;
 		First_Index : Natural; -- for checking
 	end record;
