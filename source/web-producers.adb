@@ -443,6 +443,12 @@ package body Web.Producers is
 	end Has_Element;
 	
 	function Tag (Position : Cursor) return String is
+		pragma Check (Pre,
+			Check => Has_Element (Position) or else raise Constraint_Error);
+		pragma Check (Pre,
+			Check =>
+				Position.Index = Position.Produce.Position
+				or else raise Status_Error);
 	begin
 		return Tag (Position.Produce.all);
 	end Tag;
