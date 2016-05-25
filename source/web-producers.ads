@@ -159,6 +159,7 @@ private
 		limited new Template_Iterator_Interfaces.Forward_Iterator with
 	record
 		Produce : aliased Produce_Type;
+		First_Index : Natural; -- for checking
 	end record;
 	
 	overriding function First (Object : Template_Iterator) return Cursor;

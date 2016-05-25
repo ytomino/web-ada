@@ -373,7 +373,7 @@ package body Web.Producers is
 	function More (Produce : Produce_Type) return Boolean is
 	begin
 		return Produce.Nodes /= null
-			and then Produce.Position < Produce.Nodes'Last;
+			and then Produce.Position <= Produce.Nodes'Last;
 	end More;
 	
 	function Tag (Produce : Produce_Type) return String is
@@ -390,10 +390,15 @@ package body Web.Producers is
 	end Contents;
 	
 	procedure Next (Produce : in out Produce_Type) is
-		pragma Check (Pre, Produce.Nodes /= null or else raise Status_Error);
+		pragma Check (Pre,
+			Check =>
+				(Produce.Nodes /= null
+					and then Produce.Position <= Produce.Nodes'Last)
+				or else raise Status_Error);
 	begin
-		while Produce.Position < Produce.Nodes'Last loop
+		loop
 			Produce.Position := Produce.Position + 1;
+			exit when Produce.Position > Produce.Nodes'Last;
 			declare
 				It : Node renames Produce.Nodes (Produce.Position);
 			begin
@@ -467,12 +472,15 @@ package body Web.Producers is
 				Output,
 				Template, -- checking the predicate
 				Part);
+			Result.First_Index := Result.Produce.Position;
 		end return;
 	end Iterate;
 	
 	overriding function First (Object : Template_Iterator) return Cursor is
 		pragma Check (Pre,
-			Check => Object.Produce.Position = 1 or else raise Status_Error);
+			Check =>
+				Object.Produce.Position = Object.First_Index
+				or else raise Status_Error);
 	begin
 		return Current (Object);
 	end First;
