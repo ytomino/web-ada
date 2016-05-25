@@ -516,10 +516,10 @@ package body Web.Producers is
 		Output : not null access Ada.Streams.Root_Stream_Type'Class;
 		Template : in Producers.Template'Class;
 		Part : in String := "";
-		Handler : access procedure (
+		Handler : not null access procedure (
 			Output : not null access Ada.Streams.Root_Stream_Type'Class;
 			Tag : in String;
-			Contents : in Producers.Template) := null)
+			Contents : in Producers.Template))
 	is
 		pragma Check (Dynamic_Predicate,
 			Check =>
@@ -545,9 +545,6 @@ package body Web.Producers is
 						Output,
 						Template.Data.Source (It.Text_First .. It.Text_Last));
 					if It.Tag_First <= It.Tag_Last then
-						if Handler = null then
-							raise Data_Error;
-						end if;
 						declare
 							Sub_Template : constant Producers.Template :=
 								Producers.Template'(
@@ -572,11 +569,11 @@ package body Web.Producers is
 		Output : not null access Ada.Streams.Root_Stream_Type'Class;
 		Template : in Producers.Template'Class;
 		Part : in String := "";
-		Handler : access procedure (
+		Handler : not null access procedure (
 			Output : not null access Ada.Streams.Root_Stream_Type'Class;
 			Tag : in String;
 			Contents : in Producers.Template;
-			Params : access Parameter) := null;
+			Params : access Parameter);
 		Params : access Parameter)
 	is
 		procedure Handle (
@@ -592,5 +589,43 @@ package body Web.Producers is
 			Part,
 			Handle'Access);
 	end Generic_Produce;
+	
+	-- implementation of producing for the simple case
+	
+	procedure Produce (
+		Output : not null access Ada.Streams.Root_Stream_Type'Class;
+		Template : in Producers.Template'Class; -- Parsed_Template
+		Part : in String := "")
+	is
+		pragma Check (Dynamic_Predicate,
+			Check =>
+				not Is_Empty (Producers.Template (Template))
+				or else raise Status_Error);
+		pragma Check (Dynamic_Predicate,
+			Check =>
+				Is_Parsed (Producers.Template (Template))
+				or else raise Status_Error);
+		Nodes : Node_Array_Access;
+	begin
+		if Part /= "" then
+			Nodes := Find_Part (Producers.Template (Template), Part);
+		else
+			Nodes := Template.Nodes;
+		end if;
+		if Nodes /= null then
+			for I in Nodes'Range loop
+				declare
+					It : Node renames Nodes (I);
+				begin
+					String'Write (
+						Output,
+						Template.Data.Source (It.Text_First .. It.Text_Last));
+					if It.Tag_First <= It.Tag_Last then
+						raise Data_Error; -- some handler is required
+					end if;
+				end;
+			end loop;
+		end if;
+	end Produce;
 	
 end Web.Producers;

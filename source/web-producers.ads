@@ -82,10 +82,10 @@ package Web.Producers is
 		Output : not null access Ada.Streams.Root_Stream_Type'Class;
 		Template : in Producers.Template'Class; -- Parsed_Template
 		Part : in String := "";
-		Handler : access procedure (
+		Handler : not null access procedure (
 			Output : not null access Ada.Streams.Root_Stream_Type'Class;
 			Tag : in String;
-			Contents : in Producers.Template) := null);
+			Contents : in Producers.Template));
 	
 	generic
 		type Parameter (<>) is limited private;
@@ -93,12 +93,19 @@ package Web.Producers is
 		Output : not null access Ada.Streams.Root_Stream_Type'Class;
 		Template : in Producers.Template'Class; -- Parsed_Template
 		Part : in String := "";
-		Handler : access procedure (
+		Handler : not null access procedure (
 			Output : not null access Ada.Streams.Root_Stream_Type'Class;
 			Tag : in String;
 			Contents : in Producers.Template;
-			Params : access Parameter) := null;
+			Params : access Parameter);
 		Params : access Parameter);
+	
+	-- Producing for the simple case
+	
+	procedure Produce (
+		Output : not null access Ada.Streams.Root_Stream_Type'Class;
+		Template : in Producers.Template'Class; -- Parsed_Template
+		Part : in String := "");
 	
 	-- Exceptions:
 	
