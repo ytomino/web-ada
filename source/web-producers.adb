@@ -462,7 +462,11 @@ package body Web.Producers is
 		return Template_Iterator_Interfaces.Forward_Iterator'Class is
 	begin
 		return Result : Template_Iterator do
-			Start_Produce (Result.Produce, Output, Template, Part);
+			Start_Produce (
+				Result.Produce,
+				Output,
+				Template, -- checking the predicate
+				Part);
 		end return;
 	end Iterate;
 	
