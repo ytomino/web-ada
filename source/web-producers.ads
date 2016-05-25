@@ -1,8 +1,8 @@
-with Ada.Finalization;
 with Ada.IO_Exceptions;
 with Ada.Iterator_Interfaces;
 with Ada.Streams;
-with Ada.Unchecked_Deallocation;
+private with Ada.Finalization;
+private with Ada.Unchecked_Deallocation;
 package Web.Producers is
 	
 	type Template is tagged limited private;
