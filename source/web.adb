@@ -695,67 +695,141 @@ package body Web is
 	
 	function Decode_Multipart_Form_Data (S : String) return Query_Strings is
 		
-		function New_Line (I : access Positive) return Natural is
+		function New_Line (Position : aliased in out Positive) return Natural is
 		begin
-			if S (I.all) = Character'Val (13) then
-				if I.all < S'Last and then S (I.all + 1) = Character'Val (10) then
-					I.all := I.all + 2;
+			if S (Position) = Character'Val (13) then
+				if Position < S'Last and then S (Position + 1) = Character'Val (10) then
+					Position := Position + 2;
 					return 2;
 				else
-					I.all := I.all + 1;
+					Position := Position + 1;
 					return 1;
 				end if;
-			elsif S (I.all) = Character'Val (10) then
-				I.all := I.all + 1;
+			elsif S (Position) = Character'Val (10) then
+				Position := Position + 1;
 				return 1;
 			else
 				return 0;
 			end if;
 		end New_Line;
 		
-		function Get_String (I : access Positive) return String is
+		function Get_String (Position : aliased in out Positive) return String is
 			First, Last : Positive;
 		begin
-			if S (I.all) = '"' then
-				I.all := I.all + 1;
-				First := I.all;
-				while S (I.all) /= '"' loop
-					I.all := I.all + 1;
+			if S (Position) = '"' then
+				Position := Position + 1;
+				First := Position;
+				while S (Position) /= '"' loop
+					Position := Position + 1;
 				end loop;
-				Last := I.all - 1;
-				I.all := I.all + 1;
+				Last := Position - 1;
+				Position := Position + 1;
 				return S (First .. Last);
 			end if;
 			return "";
 		end Get_String;
 		
-		procedure Skip_Spaces (I : access Positive) is
+		procedure Skip_Spaces (Position : aliased in out Positive) is
 		begin
-			while S (I.all) = ' ' loop
-				I.all := I.all + 1;
+			while S (Position) = ' ' loop
+				Position := Position + 1;
 			end loop;
 		end Skip_Spaces;
 		
+		procedure Process_Item (
+			Position : aliased in out Positive;
+			Last : Natural;
+			Result : in out Query_Strings)
+		is
+			Content_Disposition : constant String := "content-disposition:";
+			Form_Data : constant String := "form-data;";
+			Name : constant String := "name=";
+			File_Name : constant String := "filename=";
+			Content_Type : constant String := "content-type:";
+		begin
+			if Equal_Case_Insensitive (
+				S (Position .. Position + Content_Disposition'Length - 1),
+				L => Content_Disposition)
+			then
+				Position := Position + Content_Disposition'Length;
+				Skip_Spaces (Position);
+				if S (Position .. Position + Form_Data'Length - 1) = Form_Data then
+					Position := Position + Form_Data'Length;
+					Skip_Spaces (Position);
+					if S (Position .. Position + Name'Length - 1) = Name then
+						Position := Position + Name'Length;
+						declare
+							Item_Name : String renames Get_String (Position);
+						begin
+							if New_Line (Position) > 0 then
+								while New_Line (Position) > 0 loop
+									null;
+								end loop;
+								String_Maps.Include (Result, Item_Name, S (Position .. Last));
+							elsif S (Position) = ';' then
+								Position := Position + 1;
+								Skip_Spaces (Position);
+								if Equal_Case_Insensitive (
+									S (Position .. Position + File_Name'Length - 1),
+									L => File_Name)
+								then
+									Position := Position + File_Name'Length;
+									declare
+										Item_File_Name : String renames Get_String (Position);
+										Content_Type_First, Content_Type_Last : Positive;
+									begin
+										if New_Line (Position) > 0 then
+											if Equal_Case_Insensitive (
+												S (Position .. Position + Content_Type'Length - 1),
+												L => Content_Type)
+											then
+												Position := Position + Content_Type'Length;
+												Skip_Spaces (Position);
+												Content_Type_First := Position;
+												while S (Position) > Character'Val (32) loop
+													Position := Position + 1;
+												end loop;
+												Content_Type_Last := Position - 1;
+												while New_Line (Position) > 0 loop
+													null;
+												end loop;
+												String_Maps.Include (
+													Result,
+													Item_Name,
+													S (Position .. Last));
+												String_Maps.Include (
+													Result,
+													Item_Name & ":filename",
+													Item_File_Name);
+												String_Maps.Include (
+													Result,
+													Item_Name & ":content-type",
+													S (Content_Type_First .. Content_Type_Last));
+											end if;
+										end if;
+									end;
+								end if;
+							end if;
+						end;
+					end if;
+				end if;
+			end if;
+		end Process_Item;
 		Result : Query_Strings;
 		Position : aliased Positive;
 	begin
 		if S (S'First) = '-' then
 			Get_First_Line : for I in S'Range loop
 				Position := I;
-				if New_Line (Position'Access) > 0 then
+				if New_Line (Position) > 0 then
 					declare
 						Boundary : String renames S (S'First .. I - 1);
-						Content_Disposition : constant String := "content-disposition:";
-						Form_Data : constant String := "form-data;";
-						Name : constant String := "name=";
-						File_Name : constant String := "filename=";
-						Content_Type : constant String := "content-type:";
 					begin
 						Separating : loop
 							declare
 								Next : constant Natural :=
 									Ada.Strings.Fixed.Index (S (Position .. S'Last), Boundary);
-								Last : Positive;
+								Last : Natural;
 							begin
 								if Next = 0 then
 									Last := S'Last;
@@ -768,76 +842,10 @@ package body Web is
 								if S (Last) = Character'Val (13) then
 									Last := Last - 1;
 								end if;
-								if Equal_Case_Insensitive (
-									S (Position .. Position + Content_Disposition'Length - 1),
-									L => Content_Disposition)
-								then
-									Position := Position + Content_Disposition'Length;
-									Skip_Spaces (Position'Access);
-									if S (Position .. Position + Form_Data'Length - 1) = Form_Data then
-										Position := Position + Form_Data'Length;
-										Skip_Spaces (Position'Access);
-										if S (Position .. Position + Name'Length - 1) = Name then
-											Position := Position + Name'Length;
-											declare
-												Item_Name : String renames Get_String (Position'Access);
-											begin
-												if New_Line (Position'Access) > 0 then
-													while New_Line (Position'Access) > 0 loop
-														null;
-													end loop;
-													String_Maps.Include (Result, Item_Name, S (Position .. Last));
-												elsif S (Position) = ';' then
-													Position := Position + 1;
-													Skip_Spaces (Position'Access);
-													if Equal_Case_Insensitive (
-														S (Position .. Position + File_Name'Length - 1),
-														L => File_Name)
-													then
-														Position := Position + File_Name'Length;
-														declare
-															Item_File_Name : String renames Get_String (Position'Access);
-															Content_Type_First, Content_Type_Last : Positive;
-														begin
-															if New_Line (Position'Access) > 0 then
-																if Equal_Case_Insensitive (
-																	S (Position .. Position + Content_Type'Length - 1),
-																	L => Content_Type)
-																then
-																	Position := Position + Content_Type'Length;
-																	Skip_Spaces (Position'Access);
-																	Content_Type_First := Position;
-																	while S (Position) > Character'Val (32) loop
-																		Position := Position + 1;
-																	end loop;
-																	Content_Type_Last := Position - 1;
-																	while New_Line (Position'Access) > 0 loop
-																		null;
-																	end loop;
-																	String_Maps.Include (
-																		Result,
-																		Item_Name,
-																		S (Position .. Last));
-																	String_Maps.Include (
-																		Result,
-																		Item_Name & ":filename",
-																		Item_File_Name);
-																	String_Maps.Include (
-																		Result,
-																		Item_Name & ":content-type",
-																		S (Content_Type_First .. Content_Type_Last));
-																end if;
-															end if;
-														end;
-													end if;
-												end if;
-											end;
-										end if;
-									end if;
-								end if;
+								Process_Item (Position, Last, Result);
 								exit Separating when Next = 0;
 								Position := Next + Boundary'Length;
-								if New_Line (Position'Access) = 0 then
+								if New_Line (Position) = 0 then
 									exit Separating;
 								end if;
 							end;
