@@ -356,7 +356,7 @@ package body Web.Producers is
 				Is_Parsed (Producers.Template (Template))
 				or else raise Status_Error);
 	begin
-		Produce.Output := Output.all'Unchecked_Access;
+		Produce.Output := Output;
 		Produce.Sub_Template.Data := Template.Data;
 		Template.Data.Reference_Count := Template.Data.Reference_Count + 1;
 		if Part /= "" then
