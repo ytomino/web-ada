@@ -51,7 +51,9 @@ package body Web.Producers is
 					declare
 						It : Node renames Template.Nodes (I);
 					begin
-						if Template.Data.Source (It.Tag_First .. It.Tag_Last) = Part then
+						if Template.Data.Source (It.Tag_First .. It.Tag_Last) =
+							Part
+						then
 							return It.Nodes; -- OK
 						end if;
 					end;
@@ -409,7 +411,8 @@ package body Web.Producers is
 			begin
 				String'Write (
 					Produce.Output,
-					Produce.Sub_Template.Data.Source (It.Text_First .. It.Text_Last));
+					Produce.Sub_Template.Data.Source (
+						It.Text_First .. It.Text_Last));
 				Produce.Sub_Template.Nodes := It.Nodes;
 				exit when It.Tag_First <= It.Tag_Last;
 			end;

@@ -32,7 +32,9 @@ package body Web is
 						& String_Maps.Key (Position) & "="
 						& Encode_URI (String_Maps.Element (Position)) & ";");
 					if Expires /= null then
-						String'Write (Stream, " expires=" & Image (Expires.all) & ";");
+						String'Write (
+							Stream,
+							" expires=" & Image (Expires.all) & ";");
 					end if;
 					String'Write (Stream, Line_Break);
 					Position := String_Maps.Next (Position);
@@ -425,7 +427,8 @@ package body Web is
 		end return;
 	end Year_Image;
 	
-	function Month_Image (Month : Ada.Calendar.Month_Number) return Month_Name is
+	function Month_Image (Month : Ada.Calendar.Month_Number)
+		return Month_Name is
 	begin
 		return Month_T (Month * 3 - 2 .. Month * 3);
 	end Month_Image;
@@ -440,7 +443,9 @@ package body Web is
 		raise Constraint_Error;
 	end Month_Value;
 	
-	function Day_Image (Day : Ada.Calendar.Formatting.Day_Name) return Day_Name is
+	function Day_Image (Day : Ada.Calendar.Formatting.Day_Name)
+		return Day_Name
+	is
 		I : constant Natural := Ada.Calendar.Formatting.Day_Name'Pos (Day);
 	begin
 		return Day_T (I * 3 + 1 .. I * 3 + 3);
@@ -573,7 +578,8 @@ package body Web is
 	end Get_Post_Encoded_Kind;
 	
 	function Encode_URI (S : String) return String is
-		Integer_To_Hex : constant array (0 .. 15) of Character := "0123456789abcdef";
+		Integer_To_Hex : constant array (0 .. 15) of Character :=
+			"0123456789abcdef";
 		Result : String (1 .. S'Length * 3);
 		Length : Natural := 0;
 	begin
@@ -698,7 +704,9 @@ package body Web is
 		function New_Line (Position : aliased in out Positive) return Natural is
 		begin
 			if S (Position) = Character'Val (13) then
-				if Position < S'Last and then S (Position + 1) = Character'Val (10) then
+				if Position < S'Last and then S (Position + 1) =
+					Character'Val (10)
+				then
 					Position := Position + 2;
 					return 2;
 				else
@@ -765,7 +773,10 @@ package body Web is
 								while New_Line (Position) > 0 loop
 									null;
 								end loop;
-								String_Maps.Include (Result, Item_Name, S (Position .. Last));
+								String_Maps.Include (
+									Result,
+									Item_Name,
+									S (Position .. Last));
 							elsif S (Position) = ';' then
 								Position := Position + 1;
 								Skip_Spaces (Position);
@@ -775,18 +786,23 @@ package body Web is
 								then
 									Position := Position + File_Name'Length;
 									declare
-										Item_File_Name : String renames Get_String (Position);
+										Item_File_Name : String
+											renames Get_String (Position);
 										Content_Type_First, Content_Type_Last : Positive;
 									begin
 										if New_Line (Position) > 0 then
 											if Equal_Case_Insensitive (
-												S (Position .. Position + Content_Type'Length - 1),
+												S (
+													Position ..
+													Position + Content_Type'Length - 1),
 												L => Content_Type)
 											then
 												Position := Position + Content_Type'Length;
 												Skip_Spaces (Position);
 												Content_Type_First := Position;
-												while S (Position) > Character'Val (32) loop
+												while S (Position) >
+													Character'Val (32)
+												loop
 													Position := Position + 1;
 												end loop;
 												Content_Type_Last := Position - 1;
@@ -804,7 +820,9 @@ package body Web is
 												String_Maps.Include (
 													Result,
 													Item_Name & ":content-type",
-													S (Content_Type_First .. Content_Type_Last));
+													S (
+														Content_Type_First ..
+														Content_Type_Last));
 											end if;
 										end if;
 									end;
@@ -828,7 +846,9 @@ package body Web is
 						Separating : loop
 							declare
 								Next : constant Natural :=
-									Ada.Strings.Fixed.Index (S (Position .. S'Last), Boundary);
+									Ada.Strings.Fixed.Index (
+										S (Position .. S'Last),
+										Boundary);
 								Last : Natural;
 							begin
 								if Next = 0 then
@@ -966,7 +986,9 @@ package body Web is
 		Stream : not null access Ada.Streams.Root_Stream_Type'Class;
 		Location : in String) is
 	begin
-		String'Write (Stream, "status: 303 See Other" & Line_Break & "location: ");
+		String'Write (
+			Stream,
+			"status: 303 See Other" & Line_Break & "location: ");
 		String'Write (Stream, Location);
 		String'Write (Stream, Line_Break);
 	end Header_303;
