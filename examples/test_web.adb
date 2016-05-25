@@ -54,7 +54,9 @@ begin
 				elsif Tag = "is_cache" then
 					if Is_Cache then
 						if By_Iterator then
-							for I in Contents.Iterate (Output, "true") loop
+							for I in
+								Web.Producers.Produce (Output, Contents, "true")
+							loop
 								raise Web.Producers.Data_Error;
 							end loop;
 						else -- by closure
@@ -62,7 +64,9 @@ begin
 						end if;
 					else
 						if By_Iterator then
-							for I in Contents.Iterate (Output, "false") loop
+							for I in
+								Web.Producers.Produce (Output, Contents, "false")
+							loop
 								raise Web.Producers.Data_Error;
 							end loop;
 						else -- by closure
@@ -107,7 +111,7 @@ begin
 				Ada.Streams.Stream_IO.Close (Template_Cache_File);
 			end if;
 			if By_Iterator then
-				for I in Template.Iterate (Output) loop
+				for I in Web.Producers.Produce (Output, Template) loop
 					Handler (
 						Output,
 						Web.Producers.Tag (I),

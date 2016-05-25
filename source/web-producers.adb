@@ -471,9 +471,9 @@ package body Web.Producers is
 		return Contents (Position.Produce.all);
 	end Contents;
 	
-	function Iterate (
-		Template : Producers.Template'Class;
+	function Produce (
 		Output : not null access Ada.Streams.Root_Stream_Type'Class;
+		Template : Producers.Template'Class;
 		Part : String := "")
 		return Template_Iterator_Interfaces.Forward_Iterator'Class is
 	begin
@@ -485,7 +485,7 @@ package body Web.Producers is
 				Part);
 			Result.First_Index := Result.Produce.Position;
 		end return;
-	end Iterate;
+	end Produce;
 	
 	overriding function First (Object : Template_Iterator) return Cursor is
 		pragma Check (Pre,

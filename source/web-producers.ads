@@ -70,9 +70,9 @@ package Web.Producers is
 	package Template_Iterator_Interfaces is
 		new Ada.Iterator_Interfaces (Cursor, Has_Element);
 	
-	function Iterate (
-		Template : Producers.Template'Class; -- Parsed_Template
+	function Produce (
 		Output : not null access Ada.Streams.Root_Stream_Type'Class;
+		Template : Producers.Template'Class; -- Parsed_Template
 		Part : String := "")
 		return Template_Iterator_Interfaces.Forward_Iterator'Class;
 	
