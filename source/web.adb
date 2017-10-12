@@ -755,9 +755,10 @@ package body Web is
 			File_Name : constant String := "filename=";
 			Content_Type : constant String := "content-type:";
 		begin
-			if Equal_Case_Insensitive (
-				S (Position .. Position + Content_Disposition'Length - 1),
-				L => Content_Disposition)
+			if Position + Content_Disposition'Length - 1 <= S'Last
+				and then Equal_Case_Insensitive (
+					S (Position .. Position + Content_Disposition'Length - 1),
+					L => Content_Disposition)
 			then
 				Position := Position + Content_Disposition'Length;
 				Skip_Spaces (Position);
