@@ -543,6 +543,11 @@ package body Web is
 		return Environment_Variables_Value (Remote_Host_Variable);
 	end Remote_Host;
 	
+	function User_Agent return String is
+	begin
+		return Environment_Variables_Value (HTTP_User_Agent_Variable);
+	end User_Agent;
+	
 	function Post return Boolean is
 	begin
 		return Equal_Case_Insensitive (

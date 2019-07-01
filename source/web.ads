@@ -71,6 +71,8 @@ package Web is
 	function Remote_Addr return String;
 	function Remote_Host return String;
 	
+	function User_Agent return String;
+	
 	function Post return Boolean;
 	
 	type Post_Encoded_Kind is (Miscellany, URL_Encoded, Multipart_Form_Data);
@@ -217,6 +219,7 @@ private
 	Content_Type_Variable : constant String := "CONTENT_TYPE";
 	HTTP_Cookie_Variable : constant String := "HTTP_COOKIE";
 	HTTP_Host_Variable : constant String := "HTTP_HOST";
+	HTTP_User_Agent_Variable : constant String := "HTTP_USER_AGENT";
 	Remote_Addr_Variable : constant String := "REMOTE_ADDR";
 	Remote_Host_Variable : constant String := "REMOTE_HOST";
 	Request_Method_Variable : constant String := "REQUEST_METHOD";
