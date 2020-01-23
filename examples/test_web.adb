@@ -3,7 +3,7 @@ with Ada.Command_Line;
 with Ada.Directories;
 with Ada.Streams.Stream_IO;
 with Ada.Text_IO.Text_Streams;
-with Web;
+with Web.HTML;
 with Web.Lock_Files;
 with Web.Producers;
 with Web.RSS;
@@ -37,18 +37,20 @@ begin
 				Contents : in Web.Producers.Template) is
 			begin
 				if Tag = "title" then
-					Web.Write_In_HTML (Output, Web.HTML, "<<sample>>");
+					Web.HTML.Write_In_HTML (Output, Web.HTML.HTML, "<<sample>>");
 				elsif Tag = "generator" then
-					Web.Write_Begin_Attribute (Output, "content");
+					Web.HTML.Write_Begin_Attribute (Output, "content");
 					if By_Iterator then
-						Web.Write_In_Attribute (Output, Web.HTML, "by iterator");
+						Web.HTML.Write_In_Attribute (Output, Web.HTML.HTML,
+							"by iterator");
 					else -- by closure
-						Web.Write_In_Attribute (Output, Web.HTML, "by closure");
+						Web.HTML.Write_In_Attribute (Output, Web.HTML.HTML,
+							"by closure");
 					end if;
-					Web.Write_End_Attribute (Output);
+					Web.HTML.Write_End_Attribute (Output);
 				elsif Tag = "href" then
 					String'Write (Output, "href=""");
-					Web.Write_In_Attribute (Output, Web.HTML,
+					Web.HTML.Write_In_Attribute (Output, Web.HTML.HTML,
 						"http://www.google.co.jp/search?q=1%2B1");
 					Character'Write (Output, '"');
 				elsif Tag = "is_cache" then

@@ -1,3 +1,4 @@
+with Web.HTML;
 package body Web.RSS is
 	
 	procedure RSS_Start (
@@ -11,15 +12,15 @@ package body Web.RSS is
 			"<channel>" &
 			"<docs>http://blogs.law.harvard.edu/tech/rss</docs>" &
 			"<title>");
-		Write_In_HTML (Stream, XHTML, Title);
+		HTML.Write_In_HTML (Stream, HTML.XHTML, Title);
 		String'Write (Stream,
 			"</title>" &
 			"<description>");
-		Write_In_HTML (Stream, XHTML, Description);
+		HTML.Write_In_HTML (Stream, HTML.XHTML, Description);
 		String'Write (Stream,
 			"</description>" &
 			"<link>");
-		Write_In_HTML (Stream, XHTML, Link);
+		HTML.Write_In_HTML (Stream, HTML.XHTML, Link);
 		String'Write (Stream,
 			"</link>");
 	end RSS_Start;
@@ -33,15 +34,15 @@ package body Web.RSS is
 		String'Write (Stream,
 			"<item>" &
 			"<title>");
-		Write_In_HTML (Stream, XHTML, Title);
+		HTML.Write_In_HTML (Stream, HTML.XHTML, Title);
 		String'Write (Stream,
 			"</title>" &
 			"<description>");
-		Write_In_HTML (Stream, XHTML, Description);
+		HTML.Write_In_HTML (Stream, HTML.XHTML, Description);
 		String'Write (Stream,
 			"</description>" &
 			"<link>");
-		Write_In_HTML (Stream, XHTML, Link);
+		HTML.Write_In_HTML (Stream, HTML.XHTML, Link);
 		String'Write (Stream,
 			"</link>" &
 			"</item>");
