@@ -48,8 +48,7 @@ package body Web is
 		Default : String := "")
 		return String
 	is
-		Position : String_Maps.Cursor
-			renames String_Maps.Find (Map, Key);
+		Position : constant String_Maps.Cursor := String_Maps.Find (Map, Key);
 	begin
 		if not String_Maps.Has_Element (Position) then
 			return Default;
@@ -64,8 +63,7 @@ package body Web is
 		Default : Ada.Streams.Stream_Element_Array := (-1 .. 0 => <>))
 		return Ada.Streams.Stream_Element_Array
 	is
-		Position : String_Maps.Cursor
-			renames String_Maps.Find (Map, Key);
+		Position : constant String_Maps.Cursor := String_Maps.Find (Map, Key);
 	begin
 		if not String_Maps.Has_Element (Position) then
 			return Default;
@@ -274,10 +272,10 @@ package body Web is
 	-- implementation of input
 	
 	function Request_URI return String is
-		Request_URI_Value : String
-			renames Environment_Variables_Value (Request_URI_Variable);
-		Query_String_Value : String
-			renames Environment_Variables_Value (Query_String_Variable);
+		Request_URI_Value : constant String :=
+			Environment_Variables_Value (Request_URI_Variable);
+		Query_String_Value : constant String :=
+			Environment_Variables_Value (Query_String_Variable);
 	begin
 		if Query_String_Value'Length = 0
 			or else Ada.Strings.Fixed.Index (Request_URI_Value, "?") > 0
@@ -289,8 +287,8 @@ package body Web is
 	end Request_URI;
 	
 	function Request_Path return String is
-		Request_URI_Value : String
-			renames Environment_Variables_Value (Request_URI_Variable);
+		Request_URI_Value : constant String :=
+			Environment_Variables_Value (Request_URI_Variable);
 		Query_Index : constant Integer :=
 			Ada.Strings.Fixed.Index (Request_URI_Value, "?");
 	begin
@@ -332,8 +330,8 @@ package body Web is
 	end Get_Post_Length;
 	
 	function Get_Post_Encoded_Kind return Post_Encoded_Kind is
-		Content_Type_Value : String
-			renames Ada.Environment_Variables.Value (Content_Type_Variable);
+		Content_Type_Value : constant String :=
+			Ada.Environment_Variables.Value (Content_Type_Variable);
 	begin
 		if Prefixed_Case_Insensitive (
 			Content_Type_Value,
@@ -541,7 +539,7 @@ package body Web is
 					if S (Position .. Position + Name'Length - 1) = Name then
 						Position := Position + Name'Length;
 						declare
-							Item_Name : String renames Get_String (Position);
+							Item_Name : constant String := Get_String (Position);
 						begin
 							if New_Line (Position) > 0 then
 								while New_Line (Position) > 0 loop
@@ -560,8 +558,8 @@ package body Web is
 								then
 									Position := Position + File_Name'Length;
 									declare
-										Item_File_Name : String
-											renames Get_String (Position);
+										Item_File_Name : constant String :=
+											Get_String (Position);
 										Content_Type_First, Content_Type_Last : Positive;
 									begin
 										if New_Line (Position) > 0 then
@@ -615,7 +613,7 @@ package body Web is
 				Position := I;
 				if New_Line (Position) > 0 then
 					declare
-						Boundary : String renames S (S'First .. I - 1);
+						Boundary : constant String := S (S'First .. I - 1);
 					begin
 						Separating : loop
 							declare
@@ -675,7 +673,8 @@ package body Web is
 	end Get;
 	
 	function Get_Cookie return Cookie is
-		S : String renames Environment_Variables_Value (HTTP_Cookie_Variable);
+		S : constant String :=
+			Environment_Variables_Value (HTTP_Cookie_Variable);
 		Result : Cookie;
 		procedure Process (S : in String) is
 			Sep_Pos : constant Natural := Ada.Strings.Fixed.Index (S, "=");
