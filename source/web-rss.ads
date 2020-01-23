@@ -1,6 +1,6 @@
 -- <link rel="alternate" type="application/rss+xml" title="RSS2.0" href="*" />
 package Web.RSS is
-		
+	
 	procedure RSS_Start (
 		Stream : not null access Ada.Streams.Root_Stream_Type'Class;
 		Title : in String;

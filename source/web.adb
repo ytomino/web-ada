@@ -231,7 +231,7 @@ package body Web is
 						Write => Write);
 					String_Maps.Next (Position);
 				end loop;
-			end;			
+			end;
 		end if;
 	end Write_Query_In_Attribute_Internal;
 	
@@ -265,7 +265,7 @@ package body Web is
 					Write (""" />", Params);
 			end case;
 			String_Maps.Next (Position);
-		end loop;		
+		end loop;
 	end Write_Query_In_HTML_Internal;
 	
 	Begin_Attribute : constant String := "=""";
