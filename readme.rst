@@ -7,43 +7,48 @@ Introduction
 Web
 +++
 
-It contains simple subprograms for CGI, ex. getting environment variables,
-parsing QUERY_STRING, form data and cookie, writing HTTP header
-and escaped text into HTML...
+It contains the simple subprograms for CGI, e.g. getting the environment
+variables, parsing QUERY_STRING, the form data, and the cookies, writing the
+HTTP headers, etc.
+
+Web.HTML
+++++++++
+
+It contains the helpers for writing escaped text into HTML, etc.
 
 Web.Producers
 +++++++++++++
 
 It's a page producer to write HTML from the template file.
-Tags in the template file will be notified to callback procedure.
+Special tags in the template file will be notified to the callback procedure.
 
 ``<?TAG/>``
-	You can replace it to any HTML written in callback.
+ You can replace it to any HTML written in callback.
 
 ``<?TAG>CONTENTS</?TAG>``
-	You can use ``CONTENTS`` as sub-template for recursive, or ignore.
-	The sub-template is just as, or part of ``CONTENTS``.
-	
-	example::
-	
-	 <?TAG>XXX<?SUBA>AAA</?SUBA><?SUBB>BBB</?SUBB>YYY</?TAG>
-	
-	It can select all (``XXX`` to ``YYY``), extract ``SUBA`` (``AAA``)
-	or ``SUBB`` (``BBB``), repeat these or ignore all.
+ You can use ``CONTENTS`` as a sub-template for recursive or ignore.
+ The sub-template is just as or part of ``CONTENTS``.
+ 
+ example::
+ 
+  <?TAG>XXX<?SUBA>AAA</?SUBA><?SUBB>BBB</?SUBB>YYY</?TAG>
+ 
+ It can select all (``XXX`` to ``YYY``), extract ``SUBA`` (``AAA``) or ``SUBB``
+ (``BBB``), repeat these, or ignore all.
 
 ``<a ?TAG>``
-	Attribute style.
+ Attribute-style special tag.
 
 ``<a ?TAG ?? href="">``
-	Any attributes after ``??`` will be removed.
-	It's usable to look at the template file with your web browser.
-	
-	example::
-	
-		<link rel="stylesheet" type="text/css" ?APPCSS ?? href="sample.css" />
-	
-	It uses ``sample.css`` when this template is directly opened in the browser,
-	and it uses another style sheet (replacing ``APPCSS``) on output by CGI.
+ Any attributes after ``??`` will be removed.
+ It's usable to preview with your web browser.
+ 
+ example::
+ 
+  <link rel="stylesheet" type="text/css" ?APPCSS ?? href="sample.css" />
+ 
+ It uses ``sample.css`` when this template is directly opened in the browser,
+ and it uses another style sheet (replacing ``APPCSS``) on output by CGI.
 
 Web.RSS
 +++++++
@@ -54,14 +59,14 @@ Web.Lock_Files
 ++++++++++++++
 
 It's a filesystem-based interprocess mutex.
-There are simple subprograms and RAII-style object.
+There are the simple subprograms and the RAII-style object.
 
 License
 -------
 
-**license of web-gnat** ::
+**license of web-ada** ::
 
- Copyright 2006-2011 YT. All rights reserved.
+ Copyright 2006-2020 YT. All rights reserved.
  
  Redistribution and use in source and binary forms, with or without
  modification, are permitted provided that the following conditions
