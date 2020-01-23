@@ -3,7 +3,6 @@ with Ada.Environment_Variables;
 with Ada.Strings.Fixed;
 with System;
 package body Web is
-	use type Ada.Calendar.Day_Duration;
 	use type String_Maps.Cursor;
 	
 	Month_T : constant String := "JanFebMarAprMayJunJulAugSepOctNovDec";
