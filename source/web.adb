@@ -1031,6 +1031,51 @@ package body Web is
 		Header_Cookie_Internal (Stream, Cookie, null);
 	end Header_Cookie;
 	
+	procedure Header_X_Robots_Tag (
+		Stream : not null access Ada.Streams.Root_Stream_Type'Class;
+		Options : in Robots_Options)
+	is
+		procedure Write (
+			Stream : not null access Ada.Streams.Root_Stream_Type'Class;
+			Item : in String;
+			Continuing : in out Boolean) is
+		begin
+			if not Continuing then
+				String'Write (Stream, ", ");
+				Continuing := True;
+			end if;
+			String'Write (Stream, Item);
+		end Write;
+	begin
+		String'Write (Stream, "X-Robots-Tag: ");
+		declare
+			Continuing : Boolean := False;
+		begin
+			if Options.No_Index then
+				Write (Stream, "noindex", Continuing);
+			end if;
+			if Options.No_Follow then
+				Write (Stream, "nofollow", Continuing);
+			end if;
+			if Options.No_Archive then
+				Write (Stream, "noarchive", Continuing);
+			end if;
+			if Options.No_Snippet then
+				Write (Stream, "nosnippet", Continuing);
+			end if;
+			if Options.No_Translate then
+				Write (Stream, "notranslate", Continuing);
+			end if;
+			if Options.No_Image_Index then
+				Write (Stream, "noimageindex", Continuing);
+			end if;
+			if not Continuing then
+				String'Write (Stream, "all");
+			end if;
+		end;
+		String'Write (Stream, Line_Break);
+	end Header_X_Robots_Tag;
+	
 	procedure Header_Break (
 		Stream : not null access Ada.Streams.Root_Stream_Type'Class) is
 	begin

@@ -63,6 +63,18 @@ package Web is
 	function Compose (Protocol : Web.Protocol; Host, Path : String)
 		return String;
 	
+	-- robots
+	
+	type Robots_Options is record
+		No_Index : Boolean := False;
+		No_Follow : Boolean := False;
+		No_Archive : Boolean := False;
+		No_Snippet : Boolean := False;
+		No_Translate : Boolean := False;
+		No_Image_Index : Boolean := False;
+	end record;
+	pragma Pack (Robots_Options);
+	
 	-- input
 	
 	function Request_URI return String; -- including query
@@ -123,6 +135,10 @@ package Web is
 	procedure Header_Cookie (
 		Stream : not null access Ada.Streams.Root_Stream_Type'Class;
 		Cookie : in Web.Cookie);
+	
+	procedure Header_X_Robots_Tag (
+		Stream : not null access Ada.Streams.Root_Stream_Type'Class;
+		Options : in Robots_Options);
 	
 	procedure Header_Break (
 		Stream : not null access Ada.Streams.Root_Stream_Type'Class);
