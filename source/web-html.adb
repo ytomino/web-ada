@@ -99,9 +99,10 @@ package body Web.HTML is
 			In_Spaces := False;
 			case Item (I) is
 				when ' ' =>
-					if not Pre and then (
-						Previous_In_Spaces
-							or else (I < Item'Last and then Item (I + 1) = ' '))
+					if not Pre
+						and then (
+							Previous_In_Spaces
+								or else (I < Item'Last and then Item (I + 1) = ' '))
 					then
 						In_Spaces := True;
 						Alt := Alt_Sp'Access;

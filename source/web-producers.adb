@@ -84,12 +84,14 @@ package body Web.Producers is
 		Source : String_Access := new String (1 .. Natural (Length));
 	begin
 		String'Read (Stream, Source.all);
-		return Result : Template := (Ada.Finalization.Limited_Controlled with
-			Data => new Data'(
-				Reference_Count => 1,
-				Source => Source,
-				Root_Nodes => null),
-			Nodes => null)
+		return Result : Template :=
+			(Ada.Finalization.Limited_Controlled
+				with
+					Data => new Data'(
+						Reference_Count => 1,
+						Source => Source,
+						Root_Nodes => null),
+					Nodes => null)
 		do
 			Source := null; -- free on Finalize
 			if Parsing then
@@ -356,11 +358,11 @@ package body Web.Producers is
 		pragma Check (Dynamic_Predicate,
 			Check =>
 				not Is_Empty (Producers.Template (Template))
-				or else raise Status_Error);
+					or else raise Status_Error);
 		pragma Check (Dynamic_Predicate,
 			Check =>
 				Is_Parsed (Producers.Template (Template))
-				or else raise Status_Error);
+					or else raise Status_Error);
 	begin
 		Produce.Output := Output;
 		Produce.Sub_Template.Data := Template.Data;
@@ -400,8 +402,8 @@ package body Web.Producers is
 		pragma Check (Pre,
 			Check =>
 				(Produce.Nodes /= null
-					and then Produce.Position <= Produce.Nodes'Last)
-				or else raise Status_Error);
+						and then Produce.Position <= Produce.Nodes'Last)
+					or else raise Status_Error);
 	begin
 		loop
 			Produce.Position := Produce.Position + 1;
@@ -456,7 +458,7 @@ package body Web.Producers is
 		pragma Check (Pre,
 			Check =>
 				Position.Index = Position.Produce.Position
-				or else raise Status_Error);
+					or else raise Status_Error);
 	begin
 		return Tag (Position.Produce.all);
 	end Tag;
@@ -469,7 +471,7 @@ package body Web.Producers is
 		pragma Check (Pre,
 			Check =>
 				Position.Index = Position.Produce.Position
-				or else raise Status_Error);
+					or else raise Status_Error);
 	begin
 		return Contents (Position.Produce.all);
 	end Contents;
@@ -494,7 +496,7 @@ package body Web.Producers is
 		pragma Check (Pre,
 			Check =>
 				Object.Produce.Position = Object.First_Index
-				or else raise Status_Error);
+					or else raise Status_Error);
 	begin
 		return Current (Object);
 	end First;
@@ -507,7 +509,7 @@ package body Web.Producers is
 		pragma Check (Pre,
 			Check =>
 				Position.Index = Position.Produce.Position
-				or else raise Status_Error);
+					or else raise Status_Error);
 	begin
 		Next (Object.Variable_View.Produce);
 		return Current (Object);
@@ -527,11 +529,11 @@ package body Web.Producers is
 		pragma Check (Dynamic_Predicate,
 			Check =>
 				not Is_Empty (Producers.Template (Template))
-				or else raise Status_Error);
+					or else raise Status_Error);
 		pragma Check (Dynamic_Predicate,
 			Check =>
 				Is_Parsed (Producers.Template (Template))
-				or else raise Status_Error);
+					or else raise Status_Error);
 		Nodes : constant Node_Array_Access :=
 			Find_Part (Producers.Template (Template), Part);
 	begin
@@ -546,10 +548,8 @@ package body Web.Producers is
 					if It.Tag_First <= It.Tag_Last then
 						declare
 							Sub_Template : constant Producers.Template :=
-								Producers.Template'(
-									Ada.Finalization.Limited_Controlled with
-										Data => Template.Data,
-										Nodes => It.Nodes);
+								Producers.Template'(Ada.Finalization.Limited_Controlled
+									with Data => Template.Data, Nodes => It.Nodes);
 						begin
 							Template.Data.Reference_Count :=
 								Template.Data.Reference_Count + 1;
@@ -599,11 +599,11 @@ package body Web.Producers is
 		pragma Check (Dynamic_Predicate,
 			Check =>
 				not Is_Empty (Producers.Template (Template))
-				or else raise Status_Error);
+					or else raise Status_Error);
 		pragma Check (Dynamic_Predicate,
 			Check =>
 				Is_Parsed (Producers.Template (Template))
-				or else raise Status_Error);
+					or else raise Status_Error);
 		Nodes : constant Node_Array_Access :=
 			Find_Part (Producers.Template (Template), Part);
 	begin

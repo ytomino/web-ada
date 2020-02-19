@@ -143,10 +143,11 @@ private
 	
 	procedure Free is new Ada.Unchecked_Deallocation (Data, Data_Access);
 	
-	type Template is limited new Ada.Finalization.Limited_Controlled with record
-		Data : Data_Access := null;
-		Nodes : Node_Array_Access := null;
-	end record;
+	type Template is limited new Ada.Finalization.Limited_Controlled
+		with record
+			Data : Data_Access := null;
+			Nodes : Node_Array_Access := null;
+		end record;
 	
 	overriding procedure Finalize (Object : in out Template);
 	
@@ -163,13 +164,13 @@ private
 	end record;
 	
 	type Template_Iterator is
-		limited new Template_Iterator_Interfaces.Forward_Iterator with
-	record
-		Variable_View : not null access Template_Iterator :=
-			Template_Iterator'Unchecked_Access;
-		Produce : aliased Produce_Type;
-		First_Index : Natural; -- for checking
-	end record;
+		limited new Template_Iterator_Interfaces.Forward_Iterator
+		with record
+			Variable_View : not null access Template_Iterator :=
+				Template_Iterator'Unchecked_Access;
+			Produce : aliased Produce_Type;
+			First_Index : Natural; -- for checking
+		end record;
 	
 	overriding function First (Object : Template_Iterator) return Cursor;
 	overriding function Next (Object : Template_Iterator; Position : Cursor)

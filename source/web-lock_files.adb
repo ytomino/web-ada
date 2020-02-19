@@ -38,9 +38,8 @@ package body Web.Lock_Files is
 				when Use_Error => null;
 			end;
 			declare
-				Interval : constant Duration := Duration'Min (
-					Retry_Interval,
-					Timeout - Gone);
+				Interval : constant Duration :=
+					Duration'Min (Retry_Interval, Timeout - Gone);
 			begin
 				if Interval <= 0.0 then
 					return False;
@@ -79,11 +78,13 @@ package body Web.Lock_Files is
 		Retry_Interval : Duration := 1.0)
 		return Lock_Type is
 	begin
-		return Result : Lock_Type := (Ada.Finalization.Limited_Controlled with
-			Name_Length => Name'Length,
-			Locked => False,
-			Forced => False,
-			Name => Name)
+		return Result : Lock_Type :=
+			(Ada.Finalization.Limited_Controlled
+				with
+					Name_Length => Name'Length,
+					Locked => False,
+					Forced => False,
+					Name => Name)
 		do
 			Lock (
 				Name,

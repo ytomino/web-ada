@@ -71,9 +71,9 @@ package body Web is
 			declare
 				Result_String : String_Maps.Constant_Reference_Type
 					renames String_Maps.Constant_Reference (Map, Position);
-				Result_SEA : Ada.Streams.Stream_Element_Array (
-					0 ..
-					Result_String.Element.all'Length - 1);
+				Result_SEA :
+					Ada.Streams.Stream_Element_Array (
+						0 .. Result_String.Element.all'Length - 1);
 				for Result_SEA'Address use Result_String.Element.all'Address;
 			begin
 				return Result_SEA;
@@ -164,9 +164,10 @@ package body Web is
 					if Image (F + 25) /= ' ' or else Image (F + 26) /= '+' then
 						raise Constraint_Error;
 					end if;
-					Offset := Ada.Calendar.Time_Zones.Time_Offset (
-						Natural'Value (Image (F + 27 .. F + 28)) * 60
-						+ Natural'Value (Image (F + 29 .. F + 30)));
+					Offset :=
+						Ada.Calendar.Time_Zones.Time_Offset (
+							Natural'Value (Image (F + 27 .. F + 28)) * 60
+								+ Natural'Value (Image (F + 29 .. F + 30)));
 				else
 					pragma Assert (Image'Length = Time_Name'Length);
 					pragma Assert (F + 28 = Image'Last);
@@ -726,9 +727,10 @@ package body Web is
 					S_Item : Character := S (S'First + I);
 				begin
 					if S_Item in 'A' .. 'Z' then
-						S_Item := Character'Val (
-							Character'Pos (S_Item)
-							+ (Character'Pos ('a') - Character'Pos ('A')));
+						S_Item :=
+							Character'Val (
+								Character'Pos (S_Item)
+									+ (Character'Pos ('a') - Character'Pos ('A')));
 					end if;
 					pragma Assert (L (L'First + I) not in 'A' .. 'Z');
 					if S_Item /= L (L'First + I) then

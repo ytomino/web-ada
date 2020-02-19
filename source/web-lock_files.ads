@@ -48,12 +48,12 @@ package Web.Lock_Files is
 private
 	
 	type Lock_Type (Name_Length : Natural) is
-		new Ada.Finalization.Limited_Controlled with
-	record
-		Locked : Boolean;
-		Forced : aliased Boolean;
-		Name : String (1 .. Name_Length);
-	end record;
+		new Ada.Finalization.Limited_Controlled
+		with record
+			Locked : Boolean;
+			Forced : aliased Boolean;
+			Name : String (1 .. Name_Length);
+		end record;
 	
 	overriding procedure Finalize (Object : in out Lock_Type);
 	
