@@ -1,8 +1,10 @@
+with Ada.Command_Line;
 with Ada.Strings.Unbounded;
 with Ada.Text_IO;
 with Web.HTML;
 procedure test_encode is
 	use type Ada.Strings.Unbounded.Unbounded_String;
+	Verbose : Boolean := False;
 	Buffer : Ada.Strings.Unbounded.Unbounded_String;
 	procedure Append (S : in String) is
 	begin
@@ -16,7 +18,9 @@ procedure test_encode is
 		Write_In_Attribute (A);
 		pragma Assert (Buffer = B,
 			Ada.Strings.Unbounded.To_String (Buffer) & "/" & B);
-		Ada.Text_IO.Put ('.');
+		if Verbose then
+			Ada.Text_IO.Put ('.');
+		end if;
 	end Check_Attribute;
 	procedure Check_HTML (A, B : in String) is
 		procedure Write_In_HTML is
@@ -26,9 +30,16 @@ procedure test_encode is
 		Write_In_HTML (A);
 		pragma Assert (Buffer = B,
 			Ada.Strings.Unbounded.To_String (Buffer) & "/" & B);
-		Ada.Text_IO.Put ('.');
+		if Verbose then
+			Ada.Text_IO.Put ('.');
+		end if;
 	end Check_HTML;
 begin
+	for I in 1 .. Ada.Command_Line.Argument_Count loop
+		if Ada.Command_Line.Argument (I) = "-v" then
+			Verbose := True;
+		end if;
+	end loop;
 	Check_Attribute ("", "");
 	Check_Attribute ("*", "*");
 	Check_Attribute ("""'", "&quot;&apos;");
@@ -39,7 +50,9 @@ begin
 	Check_Attribute ("*" & ASCII.CR & ASCII.LF & "*", "*&#10;*");
 	Check_Attribute ("" & ASCII.CR, "&#10;");
 	Check_Attribute ("*" & ASCII.CR & "*", "*&#10;*");
-	Ada.Text_IO.New_Line;
+	if Verbose then
+		Ada.Text_IO.New_Line;
+	end if;
 	Check_HTML ("", "");
 	Check_HTML ("*", "*");
 	Check_HTML ("&<>", "&amp;&lt;&gt;");
@@ -58,6 +71,8 @@ begin
 	Check_HTML ("*  ", "*&#160;&#160;");
 	Check_HTML ("* *", "* *");
 	Check_HTML ("*  *", "*&#160;&#160;*");
-	Ada.Text_IO.New_Line;
-	pragma Debug (Ada.Text_IO.Put_Line ("OK"));
+	if Verbose then
+		Ada.Text_IO.New_Line;
+	end if;
+	pragma Debug (Ada.Text_IO.Put_Line (Ada.Text_IO.Current_Error.all, "OK"));
 end test_encode;

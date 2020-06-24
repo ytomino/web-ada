@@ -1,13 +1,22 @@
 with Ada.Calendar.Formatting;
 with Ada.Calendar.Time_Zones;
+with Ada.Command_Line;
 with Ada.Text_IO;
 with Web;
 procedure test_time is
 	use type Ada.Calendar.Time;
 	use type Ada.Calendar.Time_Zones.Time_Offset;
+	Verbose : Boolean := False;
 	S : constant String := Web.Image (Ada.Calendar.Clock);
 begin
-	Ada.Text_IO.Put_Line (S);
+	for I in 1 .. Ada.Command_Line.Argument_Count loop
+		if Ada.Command_Line.Argument (I) = "-v" then
+			Verbose := True;
+		end if;
+	end loop;
+	if Verbose then
+		Ada.Text_IO.Put_Line (S);
+	end if;
 	if S /= Web.Image (Web.Value (S)) then
 		raise Program_Error;
 	end if;
@@ -17,4 +26,5 @@ begin
 	then
 		raise Program_Error;
 	end if;
+	pragma Debug (Ada.Text_IO.Put_Line (Ada.Text_IO.Current_Error.all, "OK"));
 end test_time;
