@@ -37,10 +37,11 @@ LFLAGS+=--GCC="$(GCC)"
 endif
 
 EXAMPLES=$(basename $(filter-out b~%,$(wildcard *.adb)))
+TESTS=$(filter test_%,$(EXAMPLES))
 
-.PHONY: all clean $(EXAMPLES)
+.PHONY: all check clean $(EXAMPLES)
 
-all: $(EXAMPLES)
+all: $(addprefix $(BUILDDIR)/,$(EXAMPLES)) $(BINLN)
 
 $(BUILDDIR)/%: %.adb $(wildcard $(SOURCEDIR)/*) | $(BUILDDIR)
 	$(GCCPREFIX)gnatmake$(GCCSUFFIX) -c -I$(SOURCEDIR) $< $(GFLAGS) $(MFLAGS) -cargs $(CFLAGS)
@@ -53,7 +54,12 @@ $(BUILDDIR):
 $(BINLN): | $(BUILDDIR)
 	ln -s $(BUILDDIR) $(BINLN)
 
-$(EXAMPLES): %: $(BUILDDIR)/% $(BINLN)
+$(filter-out test_%,$(EXAMPLES)): %: $(BUILDDIR)/% $(BINLN)
+
+check: all $(TESTS)
+
+$(TESTS): %: $(BUILDDIR)/%
+	$<
 
 clean:
 	-rm -rf *.build bin
