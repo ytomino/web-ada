@@ -3,7 +3,7 @@ SOURCEDIR=../source
 HOST:=$(shell gcc -dumpmachine)
 TARGET=$(HOST)
 
-BUILDDIR=$(TARGET).build
+BUILDDIR=$(TARGET).noindex
 
 ifeq ($(TARGET),$(HOST))
 GCCPREFIX=
@@ -62,4 +62,5 @@ $(TESTS): %: $(BUILDDIR)/%
 	$<
 
 clean:
-	-rm -rf *.build bin
+	-[ -h "$(BINLN)" ] && rm "$(BINLN)"
+	-rm -r $(BUILDDIR)
