@@ -21,8 +21,8 @@ begin
 		raise Program_Error;
 	end if;
 	if Web.Value ("Thu, 21 Jul 2005 14:46:19 +0900")
-		/= Ada.Calendar.Formatting.Time_Of (
-			2005, 7, 21, 14, 46, 19, Time_Zone => 9 * 60)
+		/= Ada.Calendar.Formatting.Time_Of (2005, 7, 21, 14, 46, 19,
+			Time_Zone => 9 * 60)
 	then
 		raise Program_Error;
 	end if;

@@ -61,24 +61,22 @@ procedure test_web is
 				elsif Tag = "generator" then
 					Web.HTML.Write_Begin_Attribute (Output, "content");
 					if By_Iterator then
-						Web.HTML.Write_In_Attribute (Output, Web.HTML.HTML,
-							"by iterator");
+						Web.HTML.Write_In_Attribute (Output, Web.HTML.HTML, "by iterator");
 					else -- by closure
-						Web.HTML.Write_In_Attribute (Output, Web.HTML.HTML,
-							"by closure");
+						Web.HTML.Write_In_Attribute (Output, Web.HTML.HTML, "by closure");
 					end if;
 					Web.HTML.Write_End_Attribute (Output);
 				elsif Tag = "href" then
 					String'Write (Output, "href=""");
-					Web.HTML.Write_In_Attribute (Output, Web.HTML.HTML,
+					Web.HTML.Write_In_Attribute (
+						Output,
+						Web.HTML.HTML,
 						"http://www.google.co.jp/search?q=1%2B1");
 					Character'Write (Output, '"');
 				elsif Tag = "is_cache" then
 					if Is_Cache then
 						if By_Iterator then
-							for I in
-								Web.Producers.Produce (Output, Contents, "true")
-							loop
+							for I in Web.Producers.Produce (Output, Contents, "true") loop
 								raise Web.Producers.Data_Error;
 							end loop;
 						else -- by closure
@@ -86,9 +84,7 @@ procedure test_web is
 						end if;
 					else
 						if By_Iterator then
-							for I in
-								Web.Producers.Produce (Output, Contents, "false")
-							loop
+							for I in Web.Producers.Produce (Output, Contents, "false") loop
 								raise Web.Producers.Data_Error;
 							end loop;
 						else -- by closure
@@ -111,9 +107,7 @@ procedure test_web is
 			then
 				Is_Cache := True;
 				-- read parsed-structure from cache file
-				Ada.Streams.Stream_IO.Open (
-					Template_Cache_File,
-					Ada.Streams.Stream_IO.In_File,
+				Ada.Streams.Stream_IO.Open (Template_Cache_File, Ada.Streams.Stream_IO.In_File,
 					Name => Template_Cache);
 				Web.Producers.Read_Parsed_Information (
 					Ada.Streams.Stream_IO.Stream (Template_Cache_File),
@@ -134,10 +128,7 @@ procedure test_web is
 			end if;
 			if By_Iterator then
 				for I in Web.Producers.Produce (Output, Template) loop
-					Handler (
-						Output,
-						Web.Producers.Tag (I),
-						Web.Producers.Contents (I));
+					Handler (Output, Web.Producers.Tag (I), Web.Producers.Contents (I));
 				end loop;
 			else -- by closure
 				Web.Producers.Produce (Output, Template, Handler => Handler'Access);

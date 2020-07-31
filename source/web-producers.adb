@@ -51,9 +51,7 @@ package body Web.Producers is
 					declare
 						It : Node renames Template.Nodes (I);
 					begin
-						if Template.Data.Source (It.Tag_First .. It.Tag_Last) =
-							Part
-						then
+						if Template.Data.Source (It.Tag_First .. It.Tag_Last) = Part then
 							return It.Nodes; -- OK
 						end if;
 					end;
@@ -87,10 +85,7 @@ package body Web.Producers is
 		return Result : Template :=
 			(Ada.Finalization.Limited_Controlled
 				with
-					Data => new Data'(
-						Reference_Count => 1,
-						Source => Source,
-						Root_Nodes => null),
+					Data => new Data'(Reference_Count => 1, Source => Source, Root_Nodes => null),
 					Nodes => null)
 		do
 			Source := null; -- free on Finalize
@@ -109,8 +104,7 @@ package body Web.Producers is
 			not Is_Empty (Template) or else raise Status_Error);
 		pragma Check (Dynamic_Predicate,
 			not Is_Parsed (Template) or else raise Status_Error);
-		Source : constant not null access constant String :=
-			Template.Data.Source;
+		Source : constant not null access constant String := Template.Data.Source;
 		I : Positive := Source'First;
 		Text_First : Positive := I;
 		procedure Process (Nodes : in out Node_Array_Access; Tag : in String) is
@@ -163,7 +157,8 @@ package body Web.Producers is
 								when '>' =>
 									Tag_Last := I - 1;
 									exit;
-								when others => null;
+								when others =>
+									null;
 							end case;
 							I := I + 1;
 						end loop;
@@ -214,13 +209,15 @@ package body Web.Producers is
 									loop
 										I := I + 1;
 										case Source (I) is
-											when '/' | '>' => exit;
+											when '/' | '>' =>
+												exit;
 											when '"' =>
 												loop
 													I := I + 1;
 													exit when Source (I) = '"';
 												end loop;
-											when others => null;
+											when others =>
+												null;
 										end case;
 									end loop;
 									Text_First := I;
@@ -228,8 +225,10 @@ package body Web.Producers is
 									Tag_First := I;
 									loop
 										case Source (I) is
-											when ' ' | '=' | '/' | '>' => exit;
-											when others => null;
+											when ' ' | '=' | '/' | '>' =>
+												exit;
+											when others =>
+												null;
 										end case;
 										I := I + 1;
 									end loop;
@@ -357,12 +356,9 @@ package body Web.Producers is
 	is
 		pragma Check (Dynamic_Predicate,
 			Check =>
-				not Is_Empty (Producers.Template (Template))
-					or else raise Status_Error);
+				not Is_Empty (Producers.Template (Template)) or else raise Status_Error);
 		pragma Check (Dynamic_Predicate,
-			Check =>
-				Is_Parsed (Producers.Template (Template))
-					or else raise Status_Error);
+			Check => Is_Parsed (Producers.Template (Template)) or else raise Status_Error);
 	begin
 		Produce.Output := Output;
 		Produce.Sub_Template.Data := Template.Data;
@@ -376,8 +372,7 @@ package body Web.Producers is
 	
 	function More (Produce : Produce_Type) return Boolean is
 	begin
-		return Produce.Nodes /= null
-			and then Produce.Position <= Produce.Nodes'Last;
+		return Produce.Nodes /= null and then Produce.Position <= Produce.Nodes'Last;
 	end More;
 	
 	function Tag (Produce : Produce_Type) return String is
@@ -389,8 +384,7 @@ package body Web.Producers is
 	function Contents (Produce : Produce_Type)
 		return Template_Constant_Reference_Type
 	is
-		X : constant not null access constant Template :=
-			Produce.Sub_Template'Access;
+		X : constant not null access constant Template := Produce.Sub_Template'Access;
 	begin
 		return (Element => X);
 --		return (Element => Produce.Sub_Template'Access);
@@ -401,8 +395,7 @@ package body Web.Producers is
 	procedure Next (Produce : in out Produce_Type) is
 		pragma Check (Pre,
 			Check =>
-				(Produce.Nodes /= null
-						and then Produce.Position <= Produce.Nodes'Last)
+				(Produce.Nodes /= null and then Produce.Position <= Produce.Nodes'Last)
 					or else raise Status_Error);
 	begin
 		loop
@@ -413,8 +406,7 @@ package body Web.Producers is
 			begin
 				String'Write (
 					Produce.Output,
-					Produce.Sub_Template.Data.Source (
-						It.Text_First .. It.Text_Last));
+					Produce.Sub_Template.Data.Source (It.Text_First .. It.Text_Last));
 				Produce.Sub_Template.Nodes := It.Nodes;
 				exit when It.Tag_First <= It.Tag_Last;
 			end;
@@ -457,8 +449,7 @@ package body Web.Producers is
 			Check => Has_Element (Position) or else raise Constraint_Error);
 		pragma Check (Pre,
 			Check =>
-				Position.Index = Position.Produce.Position
-					or else raise Status_Error);
+				Position.Index = Position.Produce.Position or else raise Status_Error);
 	begin
 		return Tag (Position.Produce.all);
 	end Tag;
@@ -470,8 +461,7 @@ package body Web.Producers is
 			Check => Has_Element (Position) or else raise Constraint_Error);
 		pragma Check (Pre,
 			Check =>
-				Position.Index = Position.Produce.Position
-					or else raise Status_Error);
+				Position.Index = Position.Produce.Position or else raise Status_Error);
 	begin
 		return Contents (Position.Produce.all);
 	end Contents;
@@ -495,8 +485,7 @@ package body Web.Producers is
 	overriding function First (Object : Template_Iterator) return Cursor is
 		pragma Check (Pre,
 			Check =>
-				Object.Produce.Position = Object.First_Index
-					or else raise Status_Error);
+				Object.Produce.Position = Object.First_Index or else raise Status_Error);
 	begin
 		return Current (Object);
 	end First;
@@ -508,8 +497,7 @@ package body Web.Producers is
 			Check => Has_Element (Position) or else raise Constraint_Error);
 		pragma Check (Pre,
 			Check =>
-				Position.Index = Position.Produce.Position
-					or else raise Status_Error);
+				Position.Index = Position.Produce.Position or else raise Status_Error);
 	begin
 		Next (Object.Variable_View.Produce);
 		return Current (Object);
@@ -528,12 +516,9 @@ package body Web.Producers is
 	is
 		pragma Check (Dynamic_Predicate,
 			Check =>
-				not Is_Empty (Producers.Template (Template))
-					or else raise Status_Error);
+				not Is_Empty (Producers.Template (Template)) or else raise Status_Error);
 		pragma Check (Dynamic_Predicate,
-			Check =>
-				Is_Parsed (Producers.Template (Template))
-					or else raise Status_Error);
+			Check => Is_Parsed (Producers.Template (Template)) or else raise Status_Error);
 		Nodes : constant Node_Array_Access :=
 			Find_Part (Producers.Template (Template), Part);
 	begin
@@ -542,17 +527,14 @@ package body Web.Producers is
 				declare
 					It : Node renames Nodes (I);
 				begin
-					String'Write (
-						Output,
-						Template.Data.Source (It.Text_First .. It.Text_Last));
+					String'Write (Output, Template.Data.Source (It.Text_First .. It.Text_Last));
 					if It.Tag_First <= It.Tag_Last then
 						declare
 							Sub_Template : constant Producers.Template :=
 								Producers.Template'(Ada.Finalization.Limited_Controlled
 									with Data => Template.Data, Nodes => It.Nodes);
 						begin
-							Template.Data.Reference_Count :=
-								Template.Data.Reference_Count + 1;
+							Template.Data.Reference_Count := Template.Data.Reference_Count + 1;
 							Handler (
 								Output,
 								Template.Data.Source (It.Tag_First .. It.Tag_Last),
@@ -598,12 +580,9 @@ package body Web.Producers is
 	is
 		pragma Check (Dynamic_Predicate,
 			Check =>
-				not Is_Empty (Producers.Template (Template))
-					or else raise Status_Error);
+				not Is_Empty (Producers.Template (Template)) or else raise Status_Error);
 		pragma Check (Dynamic_Predicate,
-			Check =>
-				Is_Parsed (Producers.Template (Template))
-					or else raise Status_Error);
+			Check => Is_Parsed (Producers.Template (Template)) or else raise Status_Error);
 		Nodes : constant Node_Array_Access :=
 			Find_Part (Producers.Template (Template), Part);
 	begin
@@ -612,9 +591,7 @@ package body Web.Producers is
 				declare
 					It : Node renames Nodes (I);
 				begin
-					String'Write (
-						Output,
-						Template.Data.Source (It.Text_First .. It.Text_Last));
+					String'Write (Output, Template.Data.Source (It.Text_First .. It.Text_Last));
 					if It.Tag_First <= It.Tag_Last then
 						raise Data_Error; -- some handler is required
 					end if;

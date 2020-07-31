@@ -16,8 +16,7 @@ procedure test_encode is
 	begin
 		Buffer := Ada.Strings.Unbounded.Null_Unbounded_String;
 		Write_In_Attribute (A);
-		pragma Assert (Buffer = B,
-			Ada.Strings.Unbounded.To_String (Buffer) & "/" & B);
+		pragma Assert (Buffer = B, Ada.Strings.Unbounded.To_String (Buffer) & "/" & B);
 		if Verbose then
 			Ada.Text_IO.Put ('.');
 		end if;
@@ -28,8 +27,7 @@ procedure test_encode is
 	begin
 		Buffer := Ada.Strings.Unbounded.Null_Unbounded_String;
 		Write_In_HTML (A);
-		pragma Assert (Buffer = B,
-			Ada.Strings.Unbounded.To_String (Buffer) & "/" & B);
+		pragma Assert (Buffer = B, Ada.Strings.Unbounded.To_String (Buffer) & "/" & B);
 		if Verbose then
 			Ada.Text_IO.Put ('.');
 		end if;
