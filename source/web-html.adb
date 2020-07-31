@@ -101,8 +101,7 @@ package body Web.HTML is
 				when ' ' =>
 					if not Pre
 						and then (
-							Previous_In_Spaces
-								or else (I < Item'Last and then Item (I + 1) = ' '))
+							Previous_In_Spaces or else (I < Item'Last and then Item (I + 1) = ' '))
 					then
 						In_Spaces := True;
 						Alt := Alt_Sp'Access;
@@ -123,9 +122,7 @@ package body Web.HTML is
 				when Ada.Characters.Latin_1.LF =>
 					goto NEW_LINE;
 				when Ada.Characters.Latin_1.CR =>
-					if I < Item'Last
-						and then Item (I + 1) = Ada.Characters.Latin_1.LF
-					then
+					if I < Item'Last and then Item (I + 1) = Ada.Characters.Latin_1.LF then
 						goto CONTINUE; -- skip
 					else
 						goto NEW_LINE;
@@ -179,16 +176,10 @@ package body Web.HTML is
 					else
 						Write ("&", Params);
 					end if;
-					Write_In_Attribute_Internal (
-						Version,
-						String_Maps.Key (Position),
-						Params,
+					Write_In_Attribute_Internal (Version, String_Maps.Key (Position), Params,
 						Write => Write);
 					Write ("=", Params);
-					Write_In_Attribute_Internal (
-						Version,
-						String_Maps.Element (Position),
-						Params,
+					Write_In_Attribute_Internal (Version, String_Maps.Element (Position), Params,
 						Write => Write);
 					String_Maps.Next (Position);
 				end loop;
@@ -208,16 +199,10 @@ package body Web.HTML is
 	begin
 		while String_Maps.Has_Element (Position) loop
 			Write ("<input type=""hidden"" name=""", Params);
-			Write_In_Attribute_Internal (
-				Version,
-				String_Maps.Key (Position),
-				Params,
+			Write_In_Attribute_Internal (Version, String_Maps.Key (Position), Params,
 				Write => Write);
 			Write (""" value=""", Params);
-			Write_In_Attribute_Internal (
-				Version,
-				String_Maps.Element (Position),
-				Params,
+			Write_In_Attribute_Internal (Version, String_Maps.Element (Position), Params,
 				Write => Write);
 			case Version is
 				when HTML =>
@@ -251,11 +236,7 @@ package body Web.HTML is
 			Write (Item);
 		end By_Callback;
 	begin
-		Write_In_HTML_Internal (
-			Version,
-			Item,
-			Pre,
-			System.Null_Address,
+		Write_In_HTML_Internal (Version, Item, Pre, System.Null_Address,
 			Write => By_Callback'Access);
 	end Generic_Write_In_HTML;
 	
@@ -269,11 +250,7 @@ package body Web.HTML is
 			return System.Address
 			with Import, Convention => Intrinsic;
 	begin
-		Write_In_HTML_Internal (
-			Version,
-			Item,
-			Pre,
-			To_Address (Stream),
+		Write_In_HTML_Internal (Version, Item, Pre, To_Address (Stream),
 			Write => By_Stream'Access);
 	end Write_In_HTML;
 	
@@ -298,10 +275,7 @@ package body Web.HTML is
 			Write (Item);
 		end By_Callback;
 	begin
-		Write_In_Attribute_Internal (
-			Version,
-			Item,
-			System.Null_Address,
+		Write_In_Attribute_Internal (Version, Item, System.Null_Address,
 			Write => By_Callback'Access);
 	end Generic_Write_In_Attribute;
 	
@@ -314,10 +288,7 @@ package body Web.HTML is
 			return System.Address
 			with Import, Convention => Intrinsic;
 	begin
-		Write_In_Attribute_Internal (
-			Version,
-			Item,
-			To_Address (Stream),
+		Write_In_Attribute_Internal (Version, Item, To_Address (Stream),
 			Write => By_Stream'Access);
 	end Write_In_Attribute;
 	
@@ -339,10 +310,7 @@ package body Web.HTML is
 			Write (Item);
 		end By_Callback;
 	begin
-		Write_Query_In_HTML_Internal (
-			Version,
-			Item,
-			System.Null_Address,
+		Write_Query_In_HTML_Internal (Version, Item, System.Null_Address,
 			Write => By_Callback'Access);
 	end Generic_Write_Query_In_HTML;
 	
@@ -355,10 +323,7 @@ package body Web.HTML is
 			return System.Address
 			with Import, Convention => Intrinsic;
 	begin
-		Write_Query_In_HTML_Internal (
-			Version,
-			Item,
-			To_Address (Stream),
+		Write_Query_In_HTML_Internal (Version, Item, To_Address (Stream),
 			Write => By_Stream'Access);
 	end Write_Query_In_HTML;
 	
@@ -369,10 +334,7 @@ package body Web.HTML is
 			Write (Item);
 		end By_Callback;
 	begin
-		Write_Query_In_Attribute_Internal (
-			Version,
-			Item,
-			System.Null_Address,
+		Write_Query_In_Attribute_Internal (Version, Item, System.Null_Address,
 			Write => By_Callback'Access);
 	end Generic_Write_Query_In_Attribute;
 	
@@ -385,10 +347,7 @@ package body Web.HTML is
 			return System.Address
 			with Import, Convention => Intrinsic;
 	begin
-		Write_Query_In_Attribute_Internal (
-			Version,
-			Item,
-			To_Address (Stream),
+		Write_Query_In_Attribute_Internal (Version, Item, To_Address (Stream),
 			Write => By_Stream'Access);
 	end Write_Query_In_Attribute;
 	

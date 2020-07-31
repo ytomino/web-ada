@@ -153,13 +153,11 @@ private
 	function Year_Image (Year : Natural) return Year_Name;
 	
 	subtype Month_Name is String (1 .. 3);
-	function Month_Image (Month : Ada.Calendar.Month_Number)
-		return Month_Name;
+	function Month_Image (Month : Ada.Calendar.Month_Number) return Month_Name;
 	function Month_Value (S : String) return Ada.Calendar.Month_Number;
 	
 	subtype Day_Name is String (1 .. 3);
-	function Day_Image (Day : Ada.Calendar.Formatting.Day_Name)
-		return Day_Name;
+	function Day_Image (Day : Ada.Calendar.Formatting.Day_Name) return Day_Name;
 	function Day_Value (S : String) return Ada.Calendar.Formatting.Day_Name;
 	
 	subtype String_2 is String (1 .. 2);

@@ -38,8 +38,7 @@ package body Web.Lock_Files is
 				when Use_Error => null;
 			end;
 			declare
-				Interval : constant Duration :=
-					Duration'Min (Retry_Interval, Timeout - Gone);
+				Interval : constant Duration := Duration'Min (Retry_Interval, Timeout - Gone);
 			begin
 				if Interval <= 0.0 then
 					return False;
@@ -112,8 +111,7 @@ package body Web.Lock_Files is
 	begin
 		Unlock (Object);
 	exception
-		when Name_Error | Use_Error =>
-			null; -- Finalize can not raise any exception
+		when Name_Error | Use_Error => null; -- Finalize can not raise any exception
 	end Finalize;
 	
 end Web.Lock_Files;
