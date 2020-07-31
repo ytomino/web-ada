@@ -101,9 +101,9 @@ package body Web.Producers is
 	
 	procedure Parse (Template : in out Producers.Template) is
 		pragma Check (Dynamic_Predicate,
-			not Is_Empty (Template) or else raise Status_Error);
+			Check => not Is_Empty (Template) or else raise Status_Error);
 		pragma Check (Dynamic_Predicate,
-			not Is_Parsed (Template) or else raise Status_Error);
+			Check => not Is_Parsed (Template) or else raise Status_Error);
 		Source : constant not null access constant String := Template.Data.Source;
 		I : Positive := Source'First;
 		Text_First : Positive := I;
@@ -277,9 +277,9 @@ package body Web.Producers is
 		Template : in out Producers.Template)
 	is
 		pragma Check (Dynamic_Predicate,
-			not Is_Empty (Template) or else raise Status_Error);
+			Check => not Is_Empty (Template) or else raise Status_Error);
 		pragma Check (Dynamic_Predicate,
-			not Is_Parsed (Template) or else raise Status_Error);
+			Check => not Is_Parsed (Template) or else raise Status_Error);
 		procedure R (Nodes : in out Node_Array_Access) is
 			Length : Integer;
 		begin
@@ -309,9 +309,9 @@ package body Web.Producers is
 		Template : in Producers.Template)
 	is
 		pragma Check (Dynamic_Predicate,
-			not Is_Empty (Template) or else raise Status_Error);
+			Check => not Is_Empty (Template) or else raise Status_Error);
 		pragma Check (Dynamic_Predicate,
-			Is_Parsed (Template) or else raise Status_Error);
+			Check => Is_Parsed (Template) or else raise Status_Error);
 	begin
 		if Template.Nodes /= Template.Data.Root_Nodes then -- sub template
 			raise Constraint_Error;
