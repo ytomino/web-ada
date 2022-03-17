@@ -183,5 +183,6 @@ begin
 		end loop;
 	end loop;
 	pragma Assert (not Ada.Directories.Exists (Lock_Name));
-	pragma Debug (Ada.Text_IO.Put_Line (Ada.Text_IO.Current_Error.all, "OK"));
+	-- finish
+	Ada.Text_IO.Put_Line (Ada.Text_IO.Standard_Error.all, "ok");
 end test_web;

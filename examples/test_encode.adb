@@ -72,5 +72,6 @@ begin
 	if Verbose then
 		Ada.Text_IO.New_Line;
 	end if;
-	pragma Debug (Ada.Text_IO.Put_Line (Ada.Text_IO.Current_Error.all, "OK"));
+	-- finish
+	Ada.Text_IO.Put_Line (Ada.Text_IO.Standard_Error.all, "ok");
 end test_encode;
