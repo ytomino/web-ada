@@ -27,7 +27,7 @@ endif
 GARGS=$(addprefix --RTS=,$(abspath $(DRAKE_RTSDIR)))
 MARGS=-D $(BUILDDIR) -gnatA $(addprefix -gnatec=,$(wildcard *.adc))
 CARGS=$(CFLAGS) $(CFLAGS_ADA)
-BARGS=-E
+BARGS=-E -x
 LARGS=$(LDFLAGS)
 
 ifneq ($(GCC),gcc)
