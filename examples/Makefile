@@ -22,6 +22,9 @@ LDFLAGS=-ggdb
 ifneq ($(DRAKE_RTSROOT),)
  VERSION:=$(shell $(GCC) -dumpversion)
  DRAKE_RTSDIR=$(DRAKE_RTSROOT)/$(TARGET)/$(VERSION)
+ ifneq ($(wildcard $(DRAKE_RTSDIR)/debug),)
+  DRAKE_RTSDIR:=$(DRAKE_RTSDIR)/debug
+ endif
 endif
 
 GARGS=$(addprefix --RTS=,$(abspath $(DRAKE_RTSDIR)))
