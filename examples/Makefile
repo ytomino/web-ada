@@ -68,5 +68,5 @@ $(TESTS): %: $(BUILDDIR)/%
 	$<
 
 clean:
-	-[ -h "$(BINLN)" ] && rm "$(BINLN)"
+	-$(if $(BINLN),[ -h "$(BINLN)" ] && rm "$(BINLN)")
 	-rm -r $(BUILDDIR)
