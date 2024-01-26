@@ -381,15 +381,10 @@ package body Web.Producers is
 		return Produce.Sub_Template.Data.Source (It.Tag_First .. It.Tag_Last);
 	end Tag;
 	
-	function Contents (Produce : Produce_Type)
-		return Template_Constant_Reference_Type
-	is
-		X : constant not null access constant Template := Produce.Sub_Template'Access;
+	function Contents (Produce : aliased Produce_Type)
+		return Template_Constant_Reference_Type is
 	begin
-		return (Element => X);
---		return (Element => Produce.Sub_Template'Access);
-		-- Note: [gcc-6] It is wrongly detected as dangling. (Bug 70867)
-		-- It's able to avoid this bug by using a temporary variable.
+		return (Element => Produce.Sub_Template'Access);
 	end Contents;
 	
 	procedure Next (Produce : in out Produce_Type) is

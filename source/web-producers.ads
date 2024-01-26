@@ -53,7 +53,7 @@ package Web.Producers is
 		Part : in String := "");
 	function More (Produce : Produce_Type) return Boolean;
 	function Tag (Produce : Produce_Type) return String;
-	function Contents (Produce : Produce_Type)
+	function Contents (Produce : aliased Produce_Type)
 		return Template_Constant_Reference_Type;
 	procedure Next (Produce : in out Produce_Type);
 	procedure End_Produce (Produce : in out Produce_Type);
