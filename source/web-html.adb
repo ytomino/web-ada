@@ -256,6 +256,7 @@ package body Web.HTML is
 	
 	procedure Generic_Write_Begin_Attribute (Name : in String) is
 	begin
+		Write ((1 => ' '));
 		Write (Name);
 		Write (Begin_Attribute);
 	end Generic_Write_Begin_Attribute;
@@ -264,6 +265,7 @@ package body Web.HTML is
 		Stream : not null access Ada.Streams.Root_Stream_Type'Class;
 		Name : in String) is
 	begin
+		Character'Write (Stream, ' ');
 		String'Write (Stream, Name);
 		String'Write (Stream, Begin_Attribute);
 	end Write_Begin_Attribute;

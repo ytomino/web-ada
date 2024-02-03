@@ -195,6 +195,9 @@ package body Web.Producers is
 							elsif Source (I) = '?' then
 								-- <tag ?XXX>
 								Text_Last := I - 1;
+								while Source (Text_Last) = ' ' loop
+									Text_Last := Text_Last - 1;
+								end loop;
 								I := I + 1;
 								if Source (I) = '?' then
 									-- <tag ?? ...>

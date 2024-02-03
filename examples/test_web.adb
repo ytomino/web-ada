@@ -67,12 +67,12 @@ procedure test_web is
 					end if;
 					Web.HTML.Write_End_Attribute (Output);
 				elsif Tag = "href" then
-					String'Write (Output, "href=""");
+					Web.HTML.Write_Begin_Attribute (Output, "href");
 					Web.HTML.Write_In_Attribute (
 						Output,
 						Web.HTML.HTML,
 						"http://www.google.co.jp/search?q=1%2B1");
-					Character'Write (Output, '"');
+					Web.HTML.Write_End_Attribute (Output);
 				elsif Tag = "is_cache" then
 					if Is_Cache then
 						if By_Iterator then
@@ -156,7 +156,7 @@ procedure test_web is
 		Check_Line (Output_File, "<body>");
 		Check_Line (
 			Output_File,
-			HT & "<a href=""http://www.google.co.jp/search?q=1%2B1"" >1 + 1 = ?"
+			HT & "<a href=""http://www.google.co.jp/search?q=1%2B1"">1 + 1 = ?"
 				& "</a><br/>");
 		if Is_Cache then
 			Check_Line (Output_File, HT & "this is cache.");
