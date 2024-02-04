@@ -55,6 +55,7 @@ package Web is
 	Text_Plain : constant Mime_Type := "text/plain";
 	Text_HTML : constant Mime_Type := "text/html";
 	Text_XML : constant Mime_Type := "text/xml";
+	Application_XHTML_XML : constant Mime_Type := "application/xhtml+xml";
 	Application_RSS_XML : constant Mime_Type := "application/rss+xml";
 	
 	-- server

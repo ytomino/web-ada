@@ -44,7 +44,7 @@ procedure test_web is
 	begin
 		Ada.Text_IO.Create (Output_File, Name => Output_Name);
 		Output := Ada.Text_IO.Text_Streams.Stream (Output_File);
-		Web.Header_Content_Type (Output, Web.Text_HTML);
+		Web.Header_Content_Type (Output, Web.Application_XHTML_XML);
 		Web.Header_Break (Output);
 		Ada.Streams.Stream_IO.Open (
 			Template_Source_File,
@@ -138,9 +138,18 @@ procedure test_web is
 		Ada.Text_IO.Close (Output_File);
 		-- check the content
 		Ada.Text_IO.Open (Output_File, Ada.Text_IO.In_File, Name => Output_Name);
-		Check_Line (Output_File, "content-type: text/html");
+		Check_Line (Output_File, "content-type: application/xhtml+xml");
 		Check_Line (Output_File, "");
-		Check_Line (Output_File, "<html>");
+		Check_Line (Output_File, "<?xml version=""1.0"" encoding=""UTF-8""?>");
+		Check_Line (
+			Output_File,
+			"<!DOCTYPE html PUBLIC ""-//W3C//DTD XHTML 1.1//EN""");
+		Check_Line (
+			Output_File,
+			HT & """http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd"">");
+		Check_Line (
+			Output_File,
+			"<html xmlns=""http://www.w3.org/1999/xhtml"" xml:lang=""en"">");
 		Check_Line (Output_File, "<head>");
 		Check_Line (Output_File, HT & "<title>&lt;&lt;sample&gt;&gt;</title>");
 		if By_Iterator then
@@ -154,15 +163,17 @@ procedure test_web is
 		end if;
 		Check_Line (Output_File, "</head>");
 		Check_Line (Output_File, "<body>");
+		Check_Line (Output_File, HT & "<p>");
 		Check_Line (
 			Output_File,
-			HT & "<a href=""http://www.google.co.jp/search?q=1%2B1"">1 + 1 = ?"
+			HT & HT & "<a href=""http://www.google.co.jp/search?q=1%2B1"">1 + 1 = ?"
 				& "</a><br/>");
 		if Is_Cache then
-			Check_Line (Output_File, HT & "this is cache.");
+			Check_Line (Output_File, HT & HT & "this is cache.");
 		else
-			Check_Line (Output_File, HT & "this is parsed template.");
+			Check_Line (Output_File, HT & HT & "this is parsed template.");
 		end if;
+		Check_Line (Output_File, HT & "</p>");
 		Check_Line (Output_File, "</body>");
 		Check_Line (Output_File, "</html>");
 		pragma Assert (Ada.Text_IO.End_Of_File (Output_File));
