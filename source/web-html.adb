@@ -11,6 +11,7 @@ package body Web.HTML is
 	end By_Stream;
 	
 	Alt_Quot : aliased constant String := "&quot;";
+	Alt_Amp : aliased constant String := "&amp;";
 	Alt_Apos : aliased constant String := "&apos;";
 	Alt_LF : aliased constant String := "&#10;";
 	
@@ -31,6 +32,9 @@ package body Web.HTML is
 			case Item (I) is
 				when '"' =>
 					Alt := Alt_Quot'Access;
+					goto FLUSH;
+				when '&' =>
+					Alt := Alt_Amp'Access;
 					goto FLUSH;
 				when ''' =>
 					Alt := Alt_Apos'Access;
@@ -72,7 +76,6 @@ package body Web.HTML is
 	end Write_In_Attribute_Internal;
 	
 	Alt_Sp : aliased constant String := "&#160;";
-	Alt_Amp : aliased constant String := "&amp;";
 	Alt_LT : aliased constant String := "&lt;";
 	Alt_GT : aliased constant String := "&gt;";
 	Alt_BRO : aliased constant String := "<br>";
