@@ -6,7 +6,7 @@ package Web.HTML is
 	
 	-- output
 	
-	type HTML_Version is (HTML, XHTML);
+	type HTML_Version is (HTML4, HTML5, XHTML1, XHTML5, XML);
 	
 	generic
 		with procedure Write (Item : in String);

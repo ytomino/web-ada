@@ -12,8 +12,10 @@ package body Web.HTML is
 	
 	Alt_Quot : aliased constant String := "&quot;";
 	Alt_Amp : aliased constant String := "&amp;";
+	Alt_x27 : aliased constant String := "&#39;";
 	Alt_Apos : aliased constant String := "&apos;";
 	Alt_LF : aliased constant String := "&#10;";
+	Alt_NewLine : aliased constant String := "&NewLine;";
 	
 	procedure Write_In_Attribute_Internal (
 		Version : in HTML_Version;
@@ -37,7 +39,13 @@ package body Web.HTML is
 					Alt := Alt_Amp'Access;
 					goto FLUSH;
 				when ''' =>
-					Alt := Alt_Apos'Access;
+					case Version is
+						when XHTML1 =>
+							Alt := Alt_x27'Access;
+						when HTML4 -- "&apos;" is illegal for HTML4, but needed for very old browser
+							| HTML5 | XHTML5 | XML =>
+							Alt := Alt_Apos'Access;
+					end case;
 					goto FLUSH;
 				when Ada.Characters.Latin_1.LF =>
 					goto NEW_LINE;
@@ -55,9 +63,11 @@ package body Web.HTML is
 			end case;
 		<<NEW_LINE>>
 			case Version is
-				when HTML =>
+				when HTML4 =>
 					Alt := Line_Break'Access;
-				when XHTML =>
+				when HTML5 =>
+					Alt := Alt_NewLine'Access;
+				when XHTML1 | XHTML5 | XML =>
 					Alt := Alt_LF'Access;
 			end case;
 		<<FLUSH>>
@@ -76,6 +86,7 @@ package body Web.HTML is
 	end Write_In_Attribute_Internal;
 	
 	Alt_Sp : aliased constant String := "&#160;";
+	Alt_Nbsp : aliased constant String := "&nbsp;";
 	Alt_LT : aliased constant String := "&lt;";
 	Alt_GT : aliased constant String := "&gt;";
 	Alt_BRO : aliased constant String := "<br>";
@@ -107,7 +118,12 @@ package body Web.HTML is
 							Previous_In_Spaces or else (I < Item'Last and then Item (I + 1) = ' '))
 					then
 						In_Spaces := True;
-						Alt := Alt_Sp'Access;
+						case Version is
+							when HTML4 | HTML5 =>
+								Alt := Alt_Nbsp'Access;
+							when XHTML1 | XHTML5 | XML =>
+								Alt := Alt_Sp'Access;
+						end case;
 						goto FLUSH;
 					else
 						Last := I;
@@ -139,9 +155,9 @@ package body Web.HTML is
 				Alt := Line_Break'Access;
 			else
 				case Version is
-					when HTML =>
+					when HTML4 | HTML5 =>
 						Alt := Alt_BRO'Access;
-					when XHTML =>
+					when XHTML1 | XHTML5 | XML =>
 						Alt := Alt_BRS'Access;
 				end case;
 			end if;
@@ -208,9 +224,9 @@ package body Web.HTML is
 			Write_In_Attribute_Internal (Version, String_Maps.Element (Position), Params,
 				Write => Write);
 			case Version is
-				when HTML =>
+				when HTML4 | HTML5 =>
 					Write (""">", Params);
-				when XHTML =>
+				when XHTML1 | XHTML5 | XML =>
 					Write (""" />", Params);
 			end case;
 			String_Maps.Next (Position);

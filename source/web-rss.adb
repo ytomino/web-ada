@@ -11,11 +11,11 @@ package body Web.RSS is
 			Stream,
 			"<rss version=""2.0"">" & "<channel>"
 				& "<docs>http://blogs.law.harvard.edu/tech/rss</docs>" & "<title>");
-		HTML.Write_In_HTML (Stream, HTML.XHTML, Title);
+		HTML.Write_In_HTML (Stream, HTML.XML, Title);
 		String'Write (Stream, "</title>" & "<description>");
-		HTML.Write_In_HTML (Stream, HTML.XHTML, Description);
+		HTML.Write_In_HTML (Stream, HTML.XML, Description);
 		String'Write (Stream, "</description>" & "<link>");
-		HTML.Write_In_HTML (Stream, HTML.XHTML, Link);
+		HTML.Write_In_HTML (Stream, HTML.XML, Link);
 		String'Write (Stream, "</link>");
 	end RSS_Start;
 	
@@ -26,11 +26,11 @@ package body Web.RSS is
 		Link : in String) is
 	begin
 		String'Write (Stream, "<item>" & "<title>");
-		HTML.Write_In_HTML (Stream, HTML.XHTML, Title);
+		HTML.Write_In_HTML (Stream, HTML.XML, Title);
 		String'Write (Stream, "</title>" & "<description>");
-		HTML.Write_In_HTML (Stream, HTML.XHTML, Description);
+		HTML.Write_In_HTML (Stream, HTML.XML, Description);
 		String'Write (Stream, "</description>" & "<link>");
-		HTML.Write_In_HTML (Stream, HTML.XHTML, Link);
+		HTML.Write_In_HTML (Stream, HTML.XML, Link);
 		String'Write (Stream, "</link>" & "</item>");
 	end RSS_Item;
 	

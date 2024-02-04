@@ -12,7 +12,7 @@ procedure test_encode is
 	end Append;
 	procedure Check_Attribute (A, B : in String) is
 		procedure Write_In_Attribute is
-			new Web.HTML.Generic_Write_In_Attribute (Append, Web.HTML.XHTML);
+			new Web.HTML.Generic_Write_In_Attribute (Append, Web.HTML.XHTML1);
 	begin
 		Buffer := Ada.Strings.Unbounded.Null_Unbounded_String;
 		Write_In_Attribute (A);
@@ -23,7 +23,7 @@ procedure test_encode is
 	end Check_Attribute;
 	procedure Check_HTML (A, B : in String) is
 		procedure Write_In_HTML is
-			new Web.HTML.Generic_Write_In_HTML (Append, Web.HTML.XHTML);
+			new Web.HTML.Generic_Write_In_HTML (Append, Web.HTML.XHTML1);
 	begin
 		Buffer := Ada.Strings.Unbounded.Null_Unbounded_String;
 		Write_In_HTML (A);
@@ -40,8 +40,8 @@ begin
 	end loop;
 	Check_Attribute ("", "");
 	Check_Attribute ("*", "*");
-	Check_Attribute ("""'", "&quot;&apos;");
-	Check_Attribute ("*""*'*", "*&quot;*&apos;*");
+	Check_Attribute ("""'", "&quot;&#39;");
+	Check_Attribute ("*""*'*", "*&quot;*&#39;*");
 	Check_Attribute ("" & ASCII.LF, "&#10;");
 	Check_Attribute ("*" & ASCII.LF & "*", "*&#10;*");
 	Check_Attribute (ASCII.CR & ASCII.LF, "&#10;");

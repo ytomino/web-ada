@@ -57,20 +57,20 @@ procedure test_web is
 				Contents : in Web.Producers.Template) is
 			begin
 				if Tag = "title" then
-					Web.HTML.Write_In_HTML (Output, Web.HTML.HTML, "<<sample>>");
+					Web.HTML.Write_In_HTML (Output, Web.HTML.HTML4, "<<sample>>");
 				elsif Tag = "generator" then
 					Web.HTML.Write_Begin_Attribute (Output, "content");
 					if By_Iterator then
-						Web.HTML.Write_In_Attribute (Output, Web.HTML.HTML, "by iterator");
+						Web.HTML.Write_In_Attribute (Output, Web.HTML.XHTML1, "by iterator");
 					else -- by closure
-						Web.HTML.Write_In_Attribute (Output, Web.HTML.HTML, "by closure");
+						Web.HTML.Write_In_Attribute (Output, Web.HTML.XHTML1, "by closure");
 					end if;
 					Web.HTML.Write_End_Attribute (Output);
 				elsif Tag = "href" then
 					Web.HTML.Write_Begin_Attribute (Output, "href");
 					Web.HTML.Write_In_Attribute (
 						Output,
-						Web.HTML.HTML,
+						Web.HTML.XHTML1,
 						"http://www.google.co.jp/search?q=1%2B1");
 					Web.HTML.Write_End_Attribute (Output);
 				elsif Tag = "is_cache" then
