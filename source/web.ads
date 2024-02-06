@@ -93,7 +93,7 @@ package Web is
 	function Get_Post_Length return Natural;
 	function Get_Post_Encoded_Kind return Post_Encoded_Kind;
 	
-	function Encode_URI (S : String) return String;
+	function Encode_URI (S : String) return String; -- for query component
 	function Decode_URI (S : String) return String;
 	
 	subtype Query_Strings is String_Maps.Map;

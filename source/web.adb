@@ -350,23 +350,22 @@ package body Web is
 			declare
 				C : constant Character := S (I);
 			begin
-				if (C >= 'A' and then C <= 'Z')
-					or else (C >= 'a' and then C <= 'z')
-					or else (C >= '0' and then C <= '9')
-				then
-					Length := Length + 1;
-					Result (Length) := C;
-				elsif C = ' ' then
-					Length := Length + 1;
-					Result (Length) := '+';
-				else
-					Length := Length + 1;
-					Result (Length) := '%';
-					Length := Length + 1;
-					Result (Length) := Integer_To_Hex (Character'Pos (C) / 16);
-					Length := Length + 1;
-					Result (Length) := Integer_To_Hex (Character'Pos (C) rem 16);
-				end if;
+				case C is
+					when '0' .. '9' | 'A' .. 'Z' | 'a' .. 'z'
+						| '-' | '_' | '.' | '!' | '~' | '*' | ''' | '(' | ')' => -- unreserved
+						Length := Length + 1;
+						Result (Length) := C;
+					when ' ' => -- additional conversion for query
+						Length := Length + 1;
+						Result (Length) := '+';
+					when others =>
+						Length := Length + 1;
+						Result (Length) := '%';
+						Length := Length + 1;
+						Result (Length) := Integer_To_Hex (Character'Pos (C) / 16);
+						Length := Length + 1;
+						Result (Length) := Integer_To_Hex (Character'Pos (C) rem 16);
+				end case;
 			end;
 		end loop;
 		return Result (1 .. Length);
@@ -388,7 +387,7 @@ package body Web is
 			declare
 				C : constant Character := S (I);
 			begin
-				if C = '+' then
+				if C = '+' then -- additional conversion for query
 					Length := Length + 1;
 					Result (Length) := ' ';
 					I := I + 1;
