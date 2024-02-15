@@ -16,6 +16,7 @@ package body Web.HTML is
 	Alt_Apos : aliased constant String := "&apos;";
 	Alt_LF : aliased constant String := "&#10;";
 	Alt_NewLine : aliased constant String := "&NewLine;";
+	Alt_CR : aliased constant String := "&#13;";
 	
 	procedure Write_In_Attribute_Internal (
 		Version : in HTML_Version;
@@ -50,13 +51,19 @@ package body Web.HTML is
 				when Ada.Characters.Latin_1.LF =>
 					goto NEW_LINE;
 				when Ada.Characters.Latin_1.CR =>
-					if I < Item'Last
-						and then Item (I + 1) = Ada.Characters.Latin_1.LF
-					then
-						goto CONTINUE; -- skip
-					else
-						goto NEW_LINE;
-					end if;
+					case Version is
+						when HTML4 => -- do not use "&#" for very old browser
+							if I < Item'Last
+								and then Item (I + 1) = Ada.Characters.Latin_1.LF
+							then
+								goto CONTINUE; -- skip
+							else
+								goto NEW_LINE;
+							end if;
+						when HTML5 | XHTML1 | XHTML5 | XML =>
+							Alt := Alt_CR'Access;
+							goto FLUSH;
+					end case;
 				when others =>
 					Last := I;
 					goto CONTINUE;

@@ -10,9 +10,12 @@ procedure test_encode is
 	begin
 		Ada.Strings.Unbounded.Append (Buffer, S);
 	end Append;
-	procedure Check_Attribute (A, B : in String) is
+	procedure Check_Attribute (
+		A, B : in String;
+		Version : Web.HTML.HTML_Version)
+	is
 		procedure Write_In_Attribute is
-			new Web.HTML.Generic_Write_In_Attribute (Append, Web.HTML.XHTML1);
+			new Web.HTML.Generic_Write_In_Attribute (Append, Version);
 	begin
 		Buffer := Ada.Strings.Unbounded.Null_Unbounded_String;
 		Write_In_Attribute (A);
@@ -38,16 +41,21 @@ begin
 			Verbose := True;
 		end if;
 	end loop;
-	Check_Attribute ("", "");
-	Check_Attribute ("*", "*");
-	Check_Attribute ("""'", "&quot;&#39;");
-	Check_Attribute ("*""*'*", "*&quot;*&#39;*");
-	Check_Attribute ("" & ASCII.LF, "&#10;");
-	Check_Attribute ("*" & ASCII.LF & "*", "*&#10;*");
-	Check_Attribute (ASCII.CR & ASCII.LF, "&#10;");
-	Check_Attribute ("*" & ASCII.CR & ASCII.LF & "*", "*&#10;*");
-	Check_Attribute ("" & ASCII.CR, "&#10;");
-	Check_Attribute ("*" & ASCII.CR & "*", "*&#10;*");
+	Check_Attribute ("", "", Web.HTML.XHTML1);
+	Check_Attribute ("*", "*", Web.HTML.XHTML1);
+	Check_Attribute ("""'", "&quot;&#39;", Web.HTML.XHTML1);
+	Check_Attribute ("*""*'*", "*&quot;*&#39;*", Web.HTML.XHTML1);
+	Check_Attribute ("" & ASCII.LF, "&#10;", Web.HTML.XHTML1);
+	Check_Attribute ("*" & ASCII.LF & "*", "*&#10;*", Web.HTML.XHTML1);
+	Check_Attribute (ASCII.CR & ASCII.LF, "" & ASCII.LF, Web.HTML.HTML4);
+	Check_Attribute (ASCII.CR & ASCII.LF, "&#13;&NewLine;", Web.HTML.HTML5);
+	Check_Attribute (ASCII.CR & ASCII.LF, "&#13;&#10;", Web.HTML.XHTML1);
+	Check_Attribute (
+		"*" & ASCII.CR & ASCII.LF & "*", "*&#13;&#10;*",
+		Web.HTML.XHTML1);
+	Check_Attribute ("" & ASCII.CR, "" & ASCII.LF, Web.HTML.HTML4);
+	Check_Attribute ("" & ASCII.CR, "&#13;", Web.HTML.XHTML1);
+	Check_Attribute ("*" & ASCII.CR & "*", "*&#13;*", Web.HTML.XHTML1);
 	if Verbose then
 		Ada.Text_IO.New_Line;
 	end if;
