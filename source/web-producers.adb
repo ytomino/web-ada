@@ -220,14 +220,16 @@ package body Web.Producers is
 									raise Data_Error; -- missing attribute name
 								elsif Source (I) = '?' then
 									-- <tag ?? ...>
-									Append (
-										Nodes,
-										Node'(
-											Text_First => Text_First,
-											Text_Last => Text_Last,
-											Tag_First => 1,
-											Tag_Last => 0,
-											Nodes => null));
+									if Text_First <= Text_Last then
+										Append (
+											Nodes,
+											Node'(
+												Text_First => Text_First,
+												Text_Last => Text_Last,
+												Tag_First => 1,
+												Tag_Last => 0,
+												Nodes => null));
+									end if;
 									loop
 										I := I + 1;
 										if I > Source'Last then
@@ -264,14 +266,16 @@ package body Web.Producers is
 										end if;
 									end loop;
 									Tag_Last := I - 1;
-									Append (
-										Nodes,
-										Node'(
-											Text_First => Text_First,
-											Text_Last => Text_Last,
-											Tag_First => Tag_First,
-											Tag_Last => Tag_Last,
-											Nodes => null));
+									if Tag_First <= Tag_Last or else Text_First <= Text_Last then
+										Append (
+											Nodes,
+											Node'(
+												Text_First => Text_First,
+												Text_Last => Text_Last,
+												Tag_First => Tag_First,
+												Tag_Last => Tag_Last,
+												Nodes => null));
+									end if;
 									Text_First := I;
 								end if;
 							else
