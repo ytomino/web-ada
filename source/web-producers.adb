@@ -232,14 +232,50 @@ package body Web.Producers is
 									end loop;
 									Tag_Last := I - 1;
 									if Tag_First <= Tag_Last or else Text_First <= Text_Last then
-										Append (
-											Nodes,
-											Node'(
-												Text_First => Text_First,
-												Text_Last => Text_Last,
-												Tag_First => Tag_First,
-												Tag_Last => Tag_Last,
-												Nodes => null));
+										declare
+											Sub_Nodes : Node_Array_Access := null;
+										begin
+											if Tag_First <= Tag_Last then
+												declare
+													Contents_Text_First : constant Positive := I;
+													Contents_Text_Last : Natural;
+												begin
+													loop
+														case Source (I) is
+															when '/' | '>' | '?' =>
+																Contents_Text_Last := I - 1;
+																exit;
+															when others =>
+																I := I + 1;
+																if I > Source'Last then
+																	raise Data_Error; -- missing '>'
+																end if;
+														end case;
+													end loop;
+													while Source (Contents_Text_Last) = ' ' loop
+														Contents_Text_Last := Contents_Text_Last - 1;
+													end loop;
+													if Contents_Text_First <= Contents_Text_Last then
+														Append (
+															Sub_Nodes,
+															Node'(
+																Text_First => Contents_Text_First,
+																Text_Last => Contents_Text_Last,
+																Tag_First => 1,
+																Tag_Last => 0,
+																Nodes => null));
+													end if;
+												end;
+											end if;
+											Append (
+												Nodes,
+												Node'(
+													Text_First => Text_First,
+													Text_Last => Text_Last,
+													Tag_First => Tag_First,
+													Tag_Last => Tag_Last,
+													Nodes => Sub_Nodes));
+										end;
 									end if;
 									Text_First := I;
 									loop

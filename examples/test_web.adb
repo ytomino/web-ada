@@ -66,6 +66,8 @@ procedure test_web is
 						Web.HTML.Write_In_Attribute (Output, Web.HTML.XHTML1, "by closure");
 					end if;
 					Web.HTML.Write_End_Attribute (Output);
+				elsif Tag = "charset" then
+					Web.Producers.Produce (Output, Contents);
 				elsif Tag = "href" then
 					Web.HTML.Write_Begin_Attribute (Output, "href");
 					Web.HTML.Write_In_Attribute (
@@ -165,6 +167,7 @@ procedure test_web is
 				Output_File,
 				HT & "<meta name=""GENERATOR"" content=""by closure""/>");
 		end if;
+		Check_Line (Output_File, HT & "<meta charset=""utf-8""/>");
 		Check_Line (Output_File, "</head>");
 		Check_Line (Output_File, "<body>");
 		Check_Line (Output_File, HT & "<p>");

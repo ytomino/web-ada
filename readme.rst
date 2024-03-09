@@ -38,7 +38,7 @@ Special tags in the template file will be notified to the callback procedure.
 
 ``<a ?TAG>``
  Attribute-style special tag.
- And, any normal attributes after it will be removed.
+ And, any normal attributes after it will be removed and saved as the content of the sub-template.
  It's usable to preview with your web browser.
  
  example::
@@ -46,7 +46,7 @@ Special tags in the template file will be notified to the callback procedure.
   <link rel="stylesheet" type="text/css" ?APPCSS href="sample.css" />
  
  It uses ``sample.css`` when this template is directly opened in the browser,
- and it uses another style sheet (replacing ``APPCSS``) on output by CGI.
+ and it can select whether to replace the parts after the placeholder (``APPCSS`` href="sample.css") with another style sheet, or use the content (``href="sample.css"``) as is.
 
 Web.RSS
 +++++++
