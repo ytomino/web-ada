@@ -116,13 +116,21 @@ package body Web.Producers is
 				if Source (I) = '<' then
 					Text_Last := I - 1;
 					I := I + 1;
-					if Source (I) = '/' then
+					if I > Source'Last then
+						raise Data_Error; -- missing tag name
+					elsif Source (I) = '/' then
 						I := I + 1;
-						if Source (I) = '?' then
+						if I > Source'Last then
+							raise Data_Error; -- missing tag name
+						elsif Source (I) = '?' then
 							-- </?XXX>
 							I := I + 1;
 							Tag_First := I;
-							while Source (I) /= '>' loop
+							loop
+								if I > Source'Last then
+									raise Data_Error; -- missing '>'
+								end if;
+								exit when Source (I) = '>';
 								I := I + 1;
 							end loop;
 							Tag_Last := I - 1;
@@ -146,12 +154,15 @@ package body Web.Producers is
 						I := I + 1;
 						Tag_First := I;
 						loop
+							if I > Source'Last then
+								raise Data_Error; -- missing '>'
+							end if;
 							case Source (I) is
 								when '/' =>
 									Tag_Last := I - 1;
 									I := I + 1;
-									if Source (I) /= '>' then
-										raise Data_Error;
+									if I > Source'Last or else Source (I) /= '>' then
+										raise Data_Error; -- missing '>'
 									end if;
 									exit;
 								when '>' =>
@@ -189,9 +200,15 @@ package body Web.Producers is
 							if Source (I) = '"' then
 								loop
 									I := I + 1;
+									if I > Source'Last then
+										raise Data_Error; -- missing '"'
+									end if;
 									exit when Source (I) = '"';
 								end loop;
 								I := I + 1;
+								if I > Source'Last then
+									raise Data_Error; -- missing '>'
+								end if;
 							elsif Source (I) = '?' then
 								-- <tag ?XXX>
 								Text_Last := I - 1;
@@ -199,7 +216,9 @@ package body Web.Producers is
 									Text_Last := Text_Last - 1;
 								end loop;
 								I := I + 1;
-								if Source (I) = '?' then
+								if I > Source'Last then
+									raise Data_Error; -- missing attribute name
+								elsif Source (I) = '?' then
 									-- <tag ?? ...>
 									Append (
 										Nodes,
@@ -211,12 +230,18 @@ package body Web.Producers is
 											Nodes => null));
 									loop
 										I := I + 1;
+										if I > Source'Last then
+											raise Data_Error; -- missing '>'
+										end if;
 										case Source (I) is
 											when '/' | '>' =>
 												exit;
 											when '"' =>
 												loop
 													I := I + 1;
+													if I > Source'Last then
+														raise Data_Error; -- missing '"'
+													end if;
 													exit when Source (I) = '"';
 												end loop;
 											when others =>
@@ -234,6 +259,9 @@ package body Web.Producers is
 												null;
 										end case;
 										I := I + 1;
+										if I > Source'Last then
+											raise Data_Error; -- missing '>'
+										end if;
 									end loop;
 									Tag_Last := I - 1;
 									Append (
@@ -248,6 +276,9 @@ package body Web.Producers is
 								end if;
 							else
 								I := I + 1;
+								if I > Source'Last then
+									raise Data_Error; -- missing '>'
+								end if;
 							end if;
 						end loop;
 					end if;
