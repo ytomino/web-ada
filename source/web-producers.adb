@@ -196,7 +196,7 @@ package body Web.Producers is
 							end;
 						end if;
 					else
-						while Source (I) /= '>' loop
+						Inside_Tag : while Source (I) /= '>' loop
 							if Source (I) = '"' then
 								loop
 									I := I + 1;
@@ -216,54 +216,19 @@ package body Web.Producers is
 									Text_Last := Text_Last - 1;
 								end loop;
 								I := I + 1;
-								if I > Source'Last then
-									raise Data_Error; -- missing attribute name
-								elsif Source (I) = '?' then
-									-- <tag ?? ...>
-									if Text_First <= Text_Last then
-										Append (
-											Nodes,
-											Node'(
-												Text_First => Text_First,
-												Text_Last => Text_Last,
-												Tag_First => 1,
-												Tag_Last => 0,
-												Nodes => null));
-									end if;
-									loop
-										I := I + 1;
-										if I > Source'Last then
-											raise Data_Error; -- missing '>'
-										end if;
-										case Source (I) is
-											when '/' | '>' =>
-												exit;
-											when '"' =>
-												loop
-													I := I + 1;
-													if I > Source'Last then
-														raise Data_Error; -- missing '"'
-													end if;
-													exit when Source (I) = '"';
-												end loop;
-											when others =>
-												null;
-										end case;
-									end loop;
-									Text_First := I;
-								else
+								loop
 									Tag_First := I;
 									loop
+										if I > Source'Last then
+											raise Data_Error; -- missing '>'
+										end if;
 										case Source (I) is
-											when ' ' | '=' | '/' | '>' =>
+											when ' ' | '=' | '/' | '>' | '?' =>
 												exit;
 											when others =>
 												null;
 										end case;
 										I := I + 1;
-										if I > Source'Last then
-											raise Data_Error; -- missing '>'
-										end if;
 									end loop;
 									Tag_Last := I - 1;
 									if Tag_First <= Tag_Last or else Text_First <= Text_Last then
@@ -277,14 +242,30 @@ package body Web.Producers is
 												Nodes => null));
 									end if;
 									Text_First := I;
-								end if;
+									loop
+										case Source (I) is
+											when '/' | '>' =>
+												Text_First := I;
+												I := I + 1;
+												exit Inside_Tag;
+											when '?' => -- next ?XXX
+												I := I + 1;
+												exit;
+											when others =>
+												I := I + 1;
+												if I > Source'Last then
+													raise Data_Error; -- missing '>'
+												end if;
+										end case;
+									end loop;
+								end loop;
 							else
 								I := I + 1;
 								if I > Source'Last then
 									raise Data_Error; -- missing '>'
 								end if;
 							end if;
-						end loop;
+						end loop Inside_Tag;
 					end if;
 				else
 					I := I + 1;

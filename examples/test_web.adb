@@ -73,6 +73,10 @@ procedure test_web is
 						Web.HTML.XHTML1,
 						"http://www.google.co.jp/search?q=1%2B1");
 					Web.HTML.Write_End_Attribute (Output);
+				elsif Tag = "rel" then
+					Web.HTML.Write_Begin_Attribute (Output, "rel");
+					Web.HTML.Write_In_Attribute (Output, Web.HTML.XHTML1, "noreferrer");
+					Web.HTML.Write_End_Attribute (Output);
 				elsif Tag = "is_cache" then
 					if Is_Cache then
 						if By_Iterator then
@@ -155,18 +159,20 @@ procedure test_web is
 		if By_Iterator then
 			Check_Line (
 				Output_File,
-				HT & "<meta name=""GENERATOR"" content=""by iterator"" />");
+				HT & "<meta name=""GENERATOR"" content=""by iterator""/>");
 		else
 			Check_Line (
 				Output_File,
-				HT & "<meta name=""GENERATOR"" content=""by closure"" />");
+				HT & "<meta name=""GENERATOR"" content=""by closure""/>");
 		end if;
 		Check_Line (Output_File, "</head>");
 		Check_Line (Output_File, "<body>");
 		Check_Line (Output_File, HT & "<p>");
 		Check_Line (
 			Output_File,
-			HT & HT & "<a href=""http://www.google.co.jp/search?q=1%2B1"">1 + 1 = ?"
+			HT & HT
+				& "<a href=""http://www.google.co.jp/search?q=1%2B1"" rel=""noreferrer"">"
+				& "1 + 1 = ?"
 				& "</a><br/>");
 		if Is_Cache then
 			Check_Line (Output_File, HT & HT & "this is cache.");

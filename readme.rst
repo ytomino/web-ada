@@ -38,14 +38,12 @@ Special tags in the template file will be notified to the callback procedure.
 
 ``<a ?TAG>``
  Attribute-style special tag.
-
-``<a ?TAG ?? href="">``
- Any attributes after ``??`` will be removed.
+ And, any normal attributes after it will be removed.
  It's usable to preview with your web browser.
  
  example::
  
-  <link rel="stylesheet" type="text/css" ?APPCSS ?? href="sample.css" />
+  <link rel="stylesheet" type="text/css" ?APPCSS href="sample.css" />
  
  It uses ``sample.css`` when this template is directly opened in the browser,
  and it uses another style sheet (replacing ``APPCSS``) on output by CGI.
